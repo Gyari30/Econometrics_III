@@ -60,30 +60,78 @@ biblio-title: References
 # load packages
 if(!require(pacman)){install.packages("pacman")}
 
-p_load(devtools,tidyverse,dplyr,ggplot2,latex2exp,stargazer, fixest, modelsummary, knitr, readr)
+p_load(devtools,tidyverse,dplyr,ggplot2,latex2exp,stargazer, fixest, modelsummary, knitr, readr, tseries, lmtest, forecast)
 
-data_assign_p1 <- read_csv("data_assign_p1.csv")
+dfAssign_p1 <- as.data.frame(read_csv("data_assign_p1.csv"))
+
+# Encode quarters
+dfAssign_p1 <- cbind(dfAssign_p1,c(seq(1,nrow(dfAssign_p1),length.out=nrow(dfAssign_p1))))
+colnames(dfAssign_p1) <- c("obs", "GDP_QGR", "ind")
 ```
 
 \section{Question 1} \label{q1}
 
+```{r q1}
+ggplot(dfAssign_p1, aes(x = ind, y = GDP_QGR)) + geom_point() + ylab("GDP growth in %") + xlab("Quarters since 1987 Q2")
 
+plot.ts(dfAssign_p1$GDP_QGR, main="GDP quarterly growth since 1987 Q2", ylab="Prices")
+
+acf(dfAssign_p1$GDP_QGR,12,pl=F)
+
+acf(dfAssign_p1$GDP_QGR,12,pl=T)
+
+pacf(dfAssign_p1$GDP_QGR,12,pl=F)
+
+pacf(dfAssign_p1$GDP_QGR,12,pl=T)
+```
 
 \section{Question 2} \label{q2}
 
+```{r q2}
+ar4 <- arima(dfAssign_p1$GDP_QGR, order=c(4,0,0))
+#coeftest(ar4)
 
+ar3 <- arima(dfAssign_p1$GDP_QGR, order=c(3,0,0))
+#coeftest(ar3)
+
+ar2 <- arima(dfAssign_p1$GDP_QGR, order=c(2,0,0))
+#coeftest(ar2)
+
+ar1 <- arima(dfAssign_p1$GDP_QGR, order=c(1,0,0))
+#coeftest(ar1)
+```
+
+
+```{r, echo=TRUE, results='hide'}
+stargazer::stargazer(ar4,ar3,ar2,ar1, title="Estimating the AR(4) to AR(1) models on GDP data",  align=TRUE, label = "tab_ar4", table.placement="H", out = "tab_ar4.tex")
+```
+
+\input{tab_ar4.tex}
 
 \section{Question 3} \label{q3}
 
+```{r q3}
+ar1_res <- as.numeric(ar1[["residuals"]])
+acf(ar1_res,12,pl=F)
 
+acf(ar1_res,12,pl=T)
+```
 
 \section{Question 4} \label{q4}
 
+```{r q4}
+forecast8 <- forecast(ar1, 8, level = c(95))
+predlbl <- c("2009Q2", "2009Q3", "2009Q4", "2010Q1", "2010Q2", "2010Q3", "2010Q4", "2011Q1")
+forecast_q4 <- cbind(predlbl, as.data.frame(forecast8))
 
+kable(forecast_q4[,1:2], caption="The predicted quarterly GDP growth rates using ARIMA(1,0,0)", col.names = c("Quarter", "Predicted growth %"), digits = 3, row.names = F)
+```
 
 \section{Question 5} \label{q5}
 
-
+```{r q5}
+plot(forecast8)
+```
 
 \section{Question 6} \label{q6}
 
@@ -91,7 +139,9 @@ data_assign_p1 <- read_csv("data_assign_p1.csv")
 
 \section{Question 7} \label{q7}
 
+```{r}
 
+```
 
 \section{Question 8} \label{q8}
 
