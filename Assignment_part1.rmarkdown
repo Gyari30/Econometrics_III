@@ -1,0 +1,188 @@
+---
+title: | 
+  | Econometrics III 
+  | Assignment Part I
+author: | 
+  | Thao Le (523716) 
+  | David Gyaraki (582340)
+format: pdf
+pdf:
+  documentclass: article
+  cite-method: biblatex
+editor: source
+include-in-header:
+  text: |
+    \addtokomafont{disposition}{\rmfamily}
+    \usepackage{amsmath}
+    \newcommand{\bm}{\symbf}
+    \newcommand{\T}{\text{T}}
+    \newcommand{\pl}{\text{plim}}
+    \newcommand{\brefsection}[1]{Section \textcolor{blue}{\ref{#1}}}
+    \newcommand{\beqref}[1]{Equation \textcolor{blue}{\eqref{#1}}}
+    \newcommand{\breftable}[1]{Table \textcolor{blue}{\ref{#1}}}
+    \newcommand{\breffig}[1]{Figure \textcolor{blue}{\ref{#1}}}
+    \usepackage{fancyvrb}
+    \usepackage{dcolumn}
+    \usepackage{fvextra}
+    \DefineVerbatimEnvironment{Highlighting}{Verbatim}{
+      showspaces = false,
+      showtabs = false,
+      breaklines,
+      commandchars=\\\{\}
+    }
+pdf-engine: xelatex
+cap-location: top
+toc: true
+toc-title: Contents
+number-sections: true
+mainfont: Arial
+setspace:
+  linestretch: 1.25
+fig-align: center
+table-align: center
+fig-pos: H
+table-pos: H
+execute:
+  echo: true
+  warning: false
+  eval: true
+code-line-numbers: false
+colorlinks: true
+code-block-bg: darkgray
+df-print: default
+highlight-style: arrow-dark
+biblio-title: References
+---
+
+
+\clearpage
+
+
+```{r setup part1, echo=TRUE, results='hide'}
+# load packages
+if(!require(pacman)){install.packages("pacman")}
+
+p_load(devtools,tidyverse,dplyr,ggplot2,latex2exp,stargazer, fixest, modelsummary, knitr, readr, tseries, lmtest, forecast)
+
+dfAssign_p1 <- as.data.frame(read_csv("data_assign_p1.csv"))
+
+# Encode quarters
+dfAssign_p1 <- cbind(dfAssign_p1,c(seq(1,nrow(dfAssign_p1),length.out=nrow(dfAssign_p1))))
+colnames(dfAssign_p1) <- c("obs", "GDP_QGR", "ind")
+```
+
+
+\section{Question 1} \label{q1}
+
+
+```{r q1}
+ggplot(dfAssign_p1, aes(x = ind, y = GDP_QGR)) + geom_point() + ylab("GDP growth in %") + xlab("Quarters since 1987 Q2")
+
+plot.ts(dfAssign_p1$GDP_QGR, main="GDP quarterly growth since 1987 Q2", ylab="Prices")
+
+acf(dfAssign_p1$GDP_QGR,12,pl=F)
+
+acf(dfAssign_p1$GDP_QGR,12,pl=T)
+
+pacf(dfAssign_p1$GDP_QGR,12,pl=F)
+
+pacf(dfAssign_p1$GDP_QGR,12,pl=T)
+```
+
+
+\section{Question 2} \label{q2}
+
+
+```{r q2}
+ar4 <- arima(dfAssign_p1$GDP_QGR, order=c(4,0,0))
+#coeftest(ar4)
+
+ar3 <- arima(dfAssign_p1$GDP_QGR, order=c(3,0,0))
+#coeftest(ar3)
+
+ar2 <- arima(dfAssign_p1$GDP_QGR, order=c(2,0,0))
+#coeftest(ar2)
+
+ar1 <- arima(dfAssign_p1$GDP_QGR, order=c(1,0,0))
+#coeftest(ar1)
+```
+
+```{r, echo=TRUE, results='hide'}
+stargazer::stargazer(ar4,ar3,ar2,ar1, title="Estimating the AR(4) to AR(1) models on GDP data",  align=TRUE, label = "tab_ar4", table.placement="H", out = "tab_ar4.tex")
+```
+
+
+\input{tab_ar4.tex}
+
+\section{Question 3} \label{q3}
+
+
+```{r q3}
+ar1_res <- as.numeric(ar1[["residuals"]])
+acf(ar1_res,12,pl=F)
+
+acf(ar1_res,12,pl=T)
+```
+
+
+\section{Question 4} \label{q4}
+
+
+```{r q4}
+forecast8 <- forecast(ar1, 8, level = c(95))
+predlbl <- c("2009Q2", "2009Q3", "2009Q4", "2010Q1", "2010Q2", "2010Q3", "2010Q4", "2011Q1")
+forecast_q4 <- cbind(predlbl, as.data.frame(forecast8))
+
+kable(forecast_q4[,1:2], caption="The predicted quarterly GDP growth rates using ARIMA(1,0,0)", col.names = c("Quarter", "Predicted growth %"), digits = 3, row.names = F)
+```
+
+
+\section{Question 5} \label{q5}
+
+
+```{r q5}
+plot(forecast8) %>%
+abline(h=0, col="red", lwd=3, lty=2)
+```
+
+
+\section{Question 6} \label{q6}
+
+
+
+\section{Question 7} \label{q7}
+
+
+```{r}
+dfActuals <- data.frame(x=c(89, 90, 91, 92, 93, 94, 95, 96),
+         y=c(-1.63, 0.28, 0.33, 0.66, 1.59, 0.51, 0.71, 0.81))
+
+autoplot(forecast8, showgap = F) + geom_point(data = dfActuals, aes(x=x, y=y))
+```
+
+
+\section{Question 8} \label{q8}
+
+
+```{r}
+ar4_10 <- arima(dfAssign_p1$GDP_QGR, order=c(4,0,0))
+coeftest(ar4_10)
+
+ar3_10 <- arima(dfAssign_p1$GDP_QGR, order=c(3,0,0))
+coeftest(ar3_10)
+
+forecast_10 <- forecast(ar3_10, 8, level = c(90))
+forecast_10db <- cbind(predlbl, as.data.frame(forecast_10))
+
+kable(forecast_10db[,1:2], caption="The predicted quarterly GDP growth rates using ARIMA(1,0,0) and 90% CI", col.names = c("Quarter", "Predicted growth %"), digits = 3, row.names = F)
+```
+
+```{r}
+plot(forecast_10) %>%
+abline(h=0, col="red", lwd=3, lty=2)
+```
+
+```{r}
+autoplot(forecast_10, showgap = F) + geom_point(data = dfActuals, aes(x=x, y=y))
+```
+
