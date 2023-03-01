@@ -60,7 +60,9 @@ biblio-title: References
 # load packages
 if(!require(pacman)){install.packages("pacman")}
 
-p_load(devtools,tidyverse,dplyr,ggplot2,latex2exp,stargazer, fixest, modelsummary, knitr)
+p_load(devtools,tidyverse,dplyr,ggplot2,latex2exp,stargazer, fixest, modelsummary, knitr, readr)
+
+data_assign_p1 <- read_csv("data_assign_p1.csv")
 ```
 
 \section{Question 1} \label{q1}
