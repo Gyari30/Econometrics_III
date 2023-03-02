@@ -62,7 +62,7 @@ if(!require(pacman)){install.packages("pacman")}
 
 p_load(devtools,tidyverse,dplyr,ggplot2,latex2exp,stargazer, fixest, modelsummary, knitr, readr, tseries, lmtest, forecast)
 
-dfAssign_p1 <- as.data.frame(read_csv("data_assign_p1.csv"))
+dfAssign_p1 <- as.data.frame(read_csv("data/data_assign_p1.csv"))
 
 # Encode quarters
 dfAssign_p1 <- cbind(dfAssign_p1,c(seq(1,nrow(dfAssign_p1),length.out=nrow(dfAssign_p1))))
@@ -74,7 +74,7 @@ colnames(dfAssign_p1) <- c("obs", "GDP_QGR", "ind")
 ```{r q1}
 ggplot(dfAssign_p1, aes(x = ind, y = GDP_QGR)) + geom_point() + ylab("GDP growth in %") + xlab("Quarters since 1987 Q2")
 
-plot.ts(dfAssign_p1$GDP_QGR, main="GDP quarterly growth since 1987 Q2", ylab="Prices")
+plot.ts(dfAssign_p1$GDP_QGR, main="GDP quarterly growth since 1987 Q2", ylab="GDP growth")
 ```
 
 MAYBE SOME TEXT HERE? WE HAD NO QUESTIONS BUT JUST TO DESCRIBE THE PLOT?

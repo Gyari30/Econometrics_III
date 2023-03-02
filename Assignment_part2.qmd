@@ -1,0 +1,151 @@
+---
+title: | 
+  | Econometrics III 
+  | Assignment Part II
+author: | 
+  | Thao Le (523716) 
+  | David Gyaraki (582340)
+format: pdf
+pdf:
+  documentclass: article
+  cite-method: biblatex
+editor: source
+include-in-header:
+  text: |
+    \addtokomafont{disposition}{\rmfamily}
+    \usepackage{amsmath}
+    \newcommand{\bm}{\symbf}
+    \newcommand{\T}{\text{T}}
+    \newcommand{\pl}{\text{plim}}
+    \newcommand{\brefsection}[1]{Section \textcolor{blue}{\ref{#1}}}
+    \newcommand{\beqref}[1]{Equation \textcolor{blue}{\eqref{#1}}}
+    \newcommand{\breftable}[1]{Table \textcolor{blue}{\ref{#1}}}
+    \newcommand{\breffig}[1]{Figure \textcolor{blue}{\ref{#1}}}
+    \usepackage{fancyvrb}
+    \usepackage{dcolumn}
+    \usepackage{fvextra}
+    \DefineVerbatimEnvironment{Highlighting}{Verbatim}{
+      showspaces = false,
+      showtabs = false,
+      breaklines,
+      commandchars=\\\{\}
+    }
+pdf-engine: xelatex
+cap-location: top
+toc: true
+toc-title: Contents
+number-sections: true
+mainfont: Arial
+setspace:
+  linestretch: 1.25
+fig-align: center
+table-align: center
+fig-pos: H
+table-pos: H
+execute:
+  echo: true
+  warning: false
+  eval: true
+code-line-numbers: false
+colorlinks: true
+code-block-bg: darkgray
+df-print: default
+highlight-style: arrow-dark
+biblio-title: References
+---
+
+\clearpage
+
+```{r setup part1, echo=TRUE, results='hide'}
+# load packages
+if(!require(pacman)){install.packages("pacman")}
+
+p_load(devtools,tidyverse,dplyr,ggplot2,latex2exp,stargazer, fixest, modelsummary, knitr, readr, tseries, lmtest, forecast, dynamac)
+
+dfAssign_p2 <- as.data.frame(read_csv("data/data_assign_p2.csv"))
+
+# Encode quarters
+dfAssign_p2 <- cbind(dfAssign_p2,c(seq(1,nrow(dfAssign_p2),length.out=nrow(dfAssign_p2))))
+colnames(dfAssign_p2) <- c("obs", "GDP_QGR", "UN_RATE", "ind")
+```
+
+\section{Question 1} \label{q1}
+
+```{r q1}
+ggplot(dfAssign_p2) +
+  geom_point(aes(x = ind, y = GDP_QGR, color="GDP growth")) + 
+  geom_line(aes(x = ind, y = GDP_QGR, color="GDP growth")) +
+  geom_point(data=dfAssign_p2, aes(x=ind, y=UN_RATE, color="Unemployment"), shape=3) + 
+  ylab("GDP growth and unemployment rate in %") + 
+  xlab("Quarters since 1987 Q2") +
+  scale_color_manual(values = c(
+    "Unemployment" = "red",
+    "GDP growth" = "blue"))
+
+plot.ts(dfAssign_p2[,2:3], plot.type = c("multiple"), main="GDP quarterly growth and unemployment rate since 1987 Q2")
+```
+
+MAYBE SOME TEXT HERE? WE HAD NO QUESTIONS BUT JUST TO DESCRIBE THE PLOT?
+
+```{r}
+# Creating the autoregression of GDP growth
+ar4_gdp <- arima(dfAssign_p2$GDP_QGR, order=c(4,0,0))
+coeftest(ar4_gdp)
+
+ar3_gdp <- arima(dfAssign_p2$GDP_QGR, order=c(3,0,0))
+coeftest(ar3_gdp)
+# Stop here, 3rd lag coefficient is significant
+
+adl_4_4 <- dynardl(UN_RATE ~ GDP_QGR, data = dfAssign_p2, lags = list("UN_RATE"=1, "GDP_QGR"=4))
+  
+  arima(dfAssign_p2$UN_RATE, xreg = dfAssign_p2$GDP_QGR, order=c(4,0,4))
+coeftest(adl_4_4)
+
+```
+
+
+
+\section{Question 2} \label{q2}
+
+```{r q2}
+
+```
+
+
+
+
+\section{Question 3} \label{q3}
+
+```{r q3}
+
+```
+
+
+
+\section{Question 4} \label{q4}
+
+```{r q4}
+
+```
+
+
+
+\section{Question 5} \label{q5}
+
+```{r q5}
+
+```
+
+
+
+\section{Question 6} \label{q6}
+
+\subsection{Question 6a} \label{q6a}
+
+
+\subsection{Question 6b} \label{q6b}
+
+
+
+
+
