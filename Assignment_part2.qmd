@@ -60,7 +60,7 @@ biblio-title: References
 # load packages
 if(!require(pacman)){install.packages("pacman")}
 
-p_load(devtools,tidyverse,dplyr,ggplot2,latex2exp,stargazer, fixest, modelsummary, knitr, readr, tseries, lmtest, forecast, dynamac)
+p_load(devtools,tidyverse,dplyr,ggplot2,latex2exp,stargazer, fixest, modelsummary, knitr, readr, tseries, lmtest, forecast, dynlm)
 
 dfAssign_p2 <- as.data.frame(read_csv("data/data_assign_p2.csv"))
 
@@ -96,14 +96,15 @@ ar3_gdp <- arima(dfAssign_p2$GDP_QGR, order=c(3,0,0))
 coeftest(ar3_gdp)
 # Stop here, 3rd lag coefficient is significant
 
-adl_4_4 <- dynardl(UN_RATE ~ GDP_QGR, data = dfAssign_p2, lags = list("UN_RATE"=1, "GDP_QGR"=4))
-  
-  arima(dfAssign_p2$UN_RATE, xreg = dfAssign_p2$GDP_QGR, order=c(4,0,4))
-coeftest(adl_4_4)
+dfAssign_p2$GDP_QGR <- ts(dfAssign_p2$GDP_QGR, start = c(1987, 2), frequency = 4)
+dfAssign_p2$UN_RATE <- ts(dfAssign_p2$UN_RATE, start = c(1987, 2), frequency = 4)
 
+adl_4_4 <- dynlm(UN_RATE ~ L(UN_RATE, 1) + L(UN_RATE, 2) + L(UN_RATE, 3) + L(UN_RATE, 4) + L(GDP_QGR, 1) + L(GDP_QGR, 2) + L(GDP_QGR, 3) + L(GDP_QGR, 4), data = dfAssign_p2)
+  
+coeftest(adl_4_4)
 ```
 
-
+IT IS YET UNCLEAR HOW TO PROGRESS WITH THE RESTRICTIONS. DOES ONE RESTRICT CO-JOINTLY, START WITH X OR START WITH Y ALONE?
 
 \section{Question 2} \label{q2}
 

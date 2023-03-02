@@ -148,11 +148,11 @@ plot(forecast8) %>%
 abline(h=0, col="red", lwd=3, lty=2)
 ```
 
-From the plot in \brefsection{q4} we can see that the prediction interval is quite wide, with 0 continuously within the interval as well as some negative values. Therefore, even if our prediction is positive (expecting growth in GDP in 2009 Q2), there is indeed a really good probability that the growth in Q2 will stay negative, since almost half of the confidence interval lies within the negative territory. 
+If we assume that the innovations in our AR model are IID Gaussian, we can use the estimated model and its coefficients for forecasting the values and their confidence interval with precision. In this case, we assume that our estimates obtained in \brefsection{q4} are not influenced by any remaining correlation in the residuals (potentially from the second, third or fourth lags) and the predictions produced will not be tainted by autocorrelation. From the plot in \brefsection{q4} we can see that the prediction interval is quite wide, with 0 continuously within the interval as well as some negative values. Therefore, even if our prediction is positive (expecting growth in GDP in 2009 Q2), there is indeed a really good probability that the growth in Q2 will stay negative, since almost half of the confidence interval lies within the negative territory. 
 
 \section{Question 6} \label{q6}
 
-INNOVATIONS IN THE AR MODEL ARE IID GAUSSIAN? WHAT IS THAT?
+The assumption that the residuals and the predictions are not affected by more autocorrelation is likely incorrect. As we have seen before, even if not at 5\% level, but the second, third and fourth lag coefficients came close to being significant, implying that indeed they cause some positive autocorrelation up to the fourth lag. Since we have removed them from the model, we will likely introduce autocorrelated errors in the estimated model, which might explain the strong uncertainty in the confidence interval around our predictions.
 
 \section{Question 7} \label{q7}
 
