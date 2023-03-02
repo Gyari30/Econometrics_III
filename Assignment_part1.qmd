@@ -89,7 +89,7 @@ pacf(dfAssign_p1$GDP_QGR,12,pl=F)
 pacf(dfAssign_p1$GDP_QGR,12,pl=T)
 ```
 
-From the sample ACF and partial ACF plots, we can observe the autocorrelation of the data with each defined lag up to 12. From the sample ACF plot (former), we can observe that there is quite a bit of positive autocorrelation with the first, second, third and fourth lags (although only the first reaches the white-noise threshold). After these, there is little correlation with changing signs, only the 12th shows a relatively larger negative autocorrelation. From the partial plot, we can observe more or less the same picture, except that the first and third legs are quite enhanced while the second and fourth are less pronounced now. Furthermore we can see that the fifth lag is more pronounced negative now along with the 12th, and interestingly the eighth shows quite a large positive correlation too.
+From the sample ACF and partial ACF plots, we can observe the autocorrelation of the data with each defined lag up to 12. From the sample ACF plot (former), we can observe that there is quite a bit of positive autocorrelation with the first, second, third and fourth lags (although only the first reaches the white-noise threshold). After these, there is little correlation with changing signs, only the twelfth shows a relatively larger negative autocorrelation. From the partial plot, we can observe more or less the same picture, except that the first and third legs are quite enhanced while the second and fourth are less pronounced now. Furthermore we can see that the fifth lag is more pronounced negative now along with the twelfth, and interestingly the eighth shows quite a large positive correlation too.
 
 \section{Question 2} \label{q2}
 
@@ -107,6 +107,7 @@ ar1 <- arima(dfAssign_p1$GDP_QGR, order=c(1,0,0))
 #coeftest(ar1)
 ```
 
+We start by estimating an AR(4) model and we attempt to investigate the coefficients in the model. \breftable{tab_ar4} shows us the estimated model parameters in the AR(4) model and the subsequent restricted models. We find that the fourth lag coefficient (along with second and third) is not significant and therefore we start an elimination of lags from the model one-by-one. Column (2) contains the AR(3) model's estimated parameters then, where we can see that by removing the fourth lag, the third one became more enhanced, but this is not enough for our criteria of 5\% significance level. This implies that the third lag might be important to us later, but for now we will remove it from the model. Then the second lag should also be removed due to insignificance, and then we are left with only one, the AR(1) model with first-order autocorrelation, which is significant in predicting this quarter's GDP growth. Hence we can say that the first lag of GDP growth seems to be a significant predictor of the GDP growth in any quarter shown by (4) column in \breftable{tab_ar4}, in a positive relationship, i.e. if the GDP growth was positive last period, we predict 0.272 times that growth in this period (plus the intercept, which is significant positive). This also implies that GDP tends to exhibit similar patterns in one lag with some moderated coefficient, so if GDP growth was positive in a period, this is likely to repeat in the next period with some moderated effect. 
 
 ```{r, echo=TRUE, results='hide'}
 stargazer::stargazer(ar4,ar3,ar2,ar1, title="Estimating the AR(4) to AR(1) models on GDP data",  align=TRUE, label = "tab_ar4", table.placement="H", out = "tab_ar4.tex")
@@ -121,7 +122,12 @@ ar1_res <- as.numeric(ar1[["residuals"]])
 acf(ar1_res,12,pl=F)
 
 acf(ar1_res,12,pl=T)
+
+resar4 <- arima(ar1_res, order=c(4,0,0))
+coeftest(resar4)
 ```
+
+In this case, we can investigate the autocorrelation of the residuals in the AR(1) model. The plot above investigates the autocorrelation in the residuals up to 12 lags, and immediately we can see that the previously large first order autocorrelation has been removed thanks to our AR(1) model estimation. However, there are quite some correlations appearing in the third and fourth lags, along with some levels of correlation in the fifth, eighth and twelfth as previously seen. This would imply that the autoregressive model is not defined as best, since we still leave some autocorrelation behind. However, if we estimate an AR(4) model on the residuals, we still find that the third lag is only significant with 10\% level so this could provide us with some justification even if our model is not so well specified.
 
 \section{Question 4} \label{q4}
 
