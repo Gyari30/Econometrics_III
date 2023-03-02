@@ -139,6 +139,8 @@ forecast_q4 <- cbind(predlbl, as.data.frame(forecast8))
 kable(forecast_q4[,1:2], caption="The predicted quarterly GDP growth rates using ARIMA(1,0,0)", col.names = c("Quarter", "Predicted growth %"), digits = 3, row.names = F)
 ```
 
+Weird issue here, in Q4, the model predicts for 2009 Q2 a growth of 0.177%, but if I use the coefficients in the AR(1) model (lag1: 0.272, intercept: 1.253, 2009 Q1 value: -2.7051%), I get a higher predicted value than what the R function predicts (0.51 or sth).
+
 \section{Question 5} \label{q5}
 
 ```{r q5}
