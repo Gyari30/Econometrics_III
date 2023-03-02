@@ -75,7 +75,11 @@ colnames(dfAssign_p1) <- c("obs", "GDP_QGR", "ind")
 ggplot(dfAssign_p1, aes(x = ind, y = GDP_QGR)) + geom_point() + ylab("GDP growth in %") + xlab("Quarters since 1987 Q2")
 
 plot.ts(dfAssign_p1$GDP_QGR, main="GDP quarterly growth since 1987 Q2", ylab="Prices")
+```
 
+MAYBE SOME TEXT HERE? WE HAD NO QUESTIONS BUT JUST TO DESCRIBE THE PLOT?
+
+```{r}
 acf(dfAssign_p1$GDP_QGR,12,pl=F)
 
 acf(dfAssign_p1$GDP_QGR,12,pl=T)
@@ -84,6 +88,8 @@ pacf(dfAssign_p1$GDP_QGR,12,pl=F)
 
 pacf(dfAssign_p1$GDP_QGR,12,pl=T)
 ```
+
+From the sample ACF and partial ACF plots, we can observe the autocorrelation of the data with each defined lag up to 12. From the sample ACF plot (former), we can observe that there is quite a bit of positive autocorrelation with the first, second, third and fourth lags (although only the first reaches the white-noise threshold). After these, there is little correlation with changing signs, only the twelfth shows a relatively larger negative autocorrelation. From the partial plot, we can observe more or less the same picture, except that the first and third legs are quite enhanced while the second and fourth are less pronounced now. Furthermore we can see that the fifth lag is more pronounced negative now along with the twelfth, and interestingly the eighth shows quite a large positive correlation too.
 
 \section{Question 2} \label{q2}
 
@@ -101,6 +107,7 @@ ar1 <- arima(dfAssign_p1$GDP_QGR, order=c(1,0,0))
 #coeftest(ar1)
 ```
 
+We start by estimating an AR(4) model and we attempt to investigate the coefficients in the model. \breftable{tab_ar4} shows us the estimated model parameters in the AR(4) model and the subsequent restricted models. We find that the fourth lag coefficient (along with second and third) is not significant and therefore we start an elimination of lags from the model one-by-one. Column (2) contains the AR(3) model's estimated parameters then, where we can see that by removing the fourth lag, the third one became more enhanced, but this is not enough for our criteria of 5\% significance level. This implies that the third lag might be important to us later, but for now we will remove it from the model. Then the second lag should also be removed due to insignificance, and then we are left with only one, the AR(1) model with first-order autocorrelation, which is significant in predicting this quarter's GDP growth. Hence we can say that the first lag of GDP growth seems to be a significant predictor of the GDP growth in any quarter shown by (4) column in \breftable{tab_ar4}, in a positive relationship, i.e. if the GDP growth was positive last period, we predict 0.272 times that growth in this period (plus the intercept, which is significant positive). This also implies that GDP tends to exhibit similar patterns in one lag with some moderated coefficient, so if GDP growth was positive in a period, this is likely to repeat in the next period with some moderated effect. 
 
 ```{r, echo=TRUE, results='hide'}
 stargazer::stargazer(ar4,ar3,ar2,ar1, title="Estimating the AR(4) to AR(1) models on GDP data",  align=TRUE, label = "tab_ar4", table.placement="H", out = "tab_ar4.tex")
@@ -115,7 +122,12 @@ ar1_res <- as.numeric(ar1[["residuals"]])
 acf(ar1_res,12,pl=F)
 
 acf(ar1_res,12,pl=T)
+
+resar4 <- arima(ar1_res, order=c(4,0,0))
+coeftest(resar4)
 ```
+
+In this case, we can investigate the autocorrelation of the residuals in the AR(1) model. The plot above investigates the autocorrelation in the residuals up to 12 lags, and immediately we can see that the previously large first order autocorrelation has been removed thanks to our AR(1) model estimation. However, there are quite some correlations appearing in the third and fourth lags, along with some levels of correlation in the fifth, eighth and twelfth as previously seen. This would imply that the autoregressive model is not defined as best, since we still leave some autocorrelation behind. However, if we estimate an AR(4) model on the residuals, we still find that the third lag is only significant with 10\% level so this could provide us with some justification even if our model is not so well specified.
 
 \section{Question 4} \label{q4}
 
@@ -127,6 +139,8 @@ forecast_q4 <- cbind(predlbl, as.data.frame(forecast8))
 kable(forecast_q4[,1:2], caption="The predicted quarterly GDP growth rates using ARIMA(1,0,0)", col.names = c("Quarter", "Predicted growth %"), digits = 3, row.names = F)
 ```
 
+Weird issue here, in Q4, the model predicts for 2009 Q2 a growth of 0.177%, but if I use the coefficients in the AR(1) model (lag1: 0.272, intercept: 1.253, 2009 Q1 value: -2.7051%), I get a higher predicted value than what the R function predicts (0.51 or sth).
+
 \section{Question 5} \label{q5}
 
 ```{r q5}
@@ -134,9 +148,11 @@ plot(forecast8) %>%
 abline(h=0, col="red", lwd=3, lty=2)
 ```
 
+From the plot in \brefsection{q4} we can see that the prediction interval is quite wide, with 0 continuously within the interval as well as some negative values. Therefore, even if our prediction is positive (expecting growth in GDP in 2009 Q2), there is indeed a really good probability that the growth in Q2 will stay negative, since almost half of the confidence interval lies within the negative territory. 
+
 \section{Question 6} \label{q6}
 
-
+INNOVATIONS IN THE AR MODEL ARE IID GAUSSIAN? WHAT IS THAT?
 
 \section{Question 7} \label{q7}
 
@@ -146,6 +162,8 @@ dfActuals <- data.frame(x=c(89, 90, 91, 92, 93, 94, 95, 96),
 
 autoplot(forecast8, showgap = F) + geom_point(data = dfActuals, aes(x=x, y=y))
 ```
+
+From the plot we can read off the predicted quarterly GDP growth for two years along with the confidence intervals at a 95\% level. Then we can compare these predicted values and the confidence interval to the actual observed growth rates per period. While we can claim that most actual values are within our confidence intervals (apart from the first predicted period 2009 Q2, where the actual growth is slightly below the lower bound), this has more to do with the uncertainty of our predictions rather than the accuracy. The CI intervals are quite large, generally spanning 3-3.5\% GDP growth, which makes our predictions quite useless (predicting that GDP growth will be between 0 and 3.5\% next quarter offers relatively no insight). Also our AR(1) model seems to consistently overestimate the actual values with the predictions, apart from one (2010 Q2), all observations are below the predicted line. Therefore our accuracy is quite weak and it seems that our model consistently overestimates the actual GDP growth in the prediction window.
 
 \section{Question 8} \label{q8}
 
@@ -170,11 +188,14 @@ plot(forecast_10) %>%
 abline(h=0, col="red", lwd=3, lty=2)
 ```
 
-
-
+We can see that the AR(3) model also predicts the growth rate with great uncertainty and the growth rate confidence interval of 90\% consistently includes 0, which implies that we are not certain about whether the growth will turn positive again in the coming 2 years, even though our estimates imply that they will.
 
 ```{r}
 autoplot(forecast_10, showgap = F) + geom_point(data = dfActuals, aes(x=x, y=y))
 ```
+
+Now in the case of the 90\% confidence interval, we estimate the model using an AR(3) since we find that the estimated model's third lag coefficient is significant on a 10\% level. Using this AR(3) model, we can obtain the predictions as well as the 90\% confidence interval similarly as before. We can see that the AR(3) model results in a better prediction model, because even the 90\% confidence interval estimate around the prediction yields about 3\% spread between lower and upper bounds. Furthermore, except for the first prediction in 2009 Q2, our predictions are all within the interval and the 2009 Q3 through 2010 Q1 predictions are quite accurately almost on the prediction line. Just like in the previous case, 2010 Q2 is severely underestimated which implies that the observation is probably an unexpectedly higher GDP growth, almost an outlier of growth in that environment. However the further we progress into time, the more inaccurate our predictions become and there is an appearing trend again that the AR(3) model will overestimate the predictions for the second half of 2010. Therefore, I would say that the model is a better predictor than the AR(1), although this might also be expected since the AR(3) takes more lags into account.
+
+
 
 
