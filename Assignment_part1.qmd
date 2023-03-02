@@ -148,9 +148,11 @@ plot(forecast8) %>%
 abline(h=0, col="red", lwd=3, lty=2)
 ```
 
+From the plot in \brefsection{q4} we can see that the prediction interval is quite wide, with 0 continuously within the interval as well as some negative values. Therefore, even if our prediction is positive (expecting growth in GDP in 2009 Q2), there is indeed a really good probability that the growth in Q2 will stay negative, since almost half of the confidence interval lies within the negative territory. 
+
 \section{Question 6} \label{q6}
 
-
+INNOVATIONS IN THE AR MODEL ARE IID GAUSSIAN? WHAT IS THAT?
 
 \section{Question 7} \label{q7}
 
