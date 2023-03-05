@@ -136,10 +136,22 @@ forecast8 <- forecast(ar1, 8, level = c(95))
 predlbl <- c("2009Q2", "2009Q3", "2009Q4", "2010Q1", "2010Q2", "2010Q3", "2010Q4", "2011Q1")
 forecast_q4 <- cbind(predlbl, as.data.frame(forecast8))
 
+pred <- predict(ar1, 8)
+
 kable(forecast_q4[,1:2], caption="The predicted quarterly GDP growth rates using ARIMA(1,0,0)", col.names = c("Quarter", "Predicted growth %"), digits = 3, row.names = F)
+
+mean(dfAssign_p1$GDP_QGR)
 ```
 
-Weird issue here, in Q4, the model predicts for 2009 Q2 a growth of 0.177%, but if I use the coefficients in the AR(1) model (lag1: 0.272, intercept: 1.253, 2009 Q1 value: -2.7051%), I get a higher predicted value than what the R function predicts (0.51 or sth).
+Since we estimated the AR(1) model with nonzero mean, our prediction for the first period follows the calculation:
+
+\begin{equation}
+\begin{aligned}
+\hat{Y}_{T+1} = \delta + \phi (Y_T - \mu),
+\end{aligned}
+\end{equation}
+
+\noindent where $\delta$ is the estimated intercept, $\phi$ is the coefficient of the AR(1) lag term and $\mu=1.26317$ is the mean of the GDP growth in the estimation period. Therefore, we can calculate the value for the Q2 of 2009 by $(-2.7051-1.26317)*0.272+1.253 = 0.174$, which closely corresponds to the function estimates of $0.177$. For all further values in time period $t$, we simply use the predicted values for period $t-1$. We can then manually confirm that indeed the values predicted by the function are correct.
 
 \section{Question 5} \label{q5}
 
@@ -152,7 +164,7 @@ If we assume that the innovations in our AR model are IID Gaussian, we can use t
 
 \section{Question 6} \label{q6}
 
-The assumption that the residuals and the predictions are not affected by more autocorrelation is likely incorrect. As we have seen before, even if not at 5\% level, but the second, third and fourth lag coefficients came close to being significant, implying that indeed they cause some positive autocorrelation up to the fourth lag. Since we have removed them from the model, we will likely introduce autocorrelated errors in the estimated model, which might explain the strong uncertainty in the confidence interval around our predictions.
+The assumption that the residuals and the predictions are not affected by more autocorrelation is likely incorrect. As we have seen before, even if not at 5\% level, but the second, third and fourth lag coefficients came close to being significant, implying that indeed they cause some positive autocorrelation up to the fourth lag. Since we have removed them from the model, we will likely introduce autocorrelated errors in the estimated model, which might explain the strong uncertainty in the confidence interval around our predictions. Therefore, as the graph also implies, we may have an overestimation bias by not including the second-to-fourth lags in the model and the CI of the estimates will implode because of the reduced efficiency of the model (although the coefficient estimates will be consistent and unbiased).
 
 \section{Question 7} \label{q7}
 
