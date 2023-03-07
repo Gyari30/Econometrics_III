@@ -175,11 +175,7 @@ dfActuals <- data.frame(x=c(89, 90, 91, 92, 93, 94, 95, 96),
 autoplot(forecast8, showgap = F) + geom_point(data = dfActuals, aes(x=x, y=y))
 ```
 
-From the plot we can read off the predicted quarterly GDP growth for two years along with the confidence intervals at a 95\% level. Then we can compare these predicted values and the confidence interval to the actual observed growth rates per period. While we can claim that most actual values are within our confidence intervals (apart from the first predicted period 2009 Q2, where the actual growth is slightly below the lower bound), this has more to do with the uncertainty of our predictions rather than the accuracy. The CI intervals are quite large, generally spanning 3-3.5\% GDP growth, which makes our predictions quite useless (predicting that GDP growth will be between 0 and 3.5\% next quarter offers relatively no insight). Also our AR(1) model seems to consistently overestimate the actual values with the predictions, apart from one (2010 Q2), all observations are below the predicted line. Therefore our accuracy is quite weak and it seems that our model consistently overestimates the actual GDP growth in the prediction window. Something
-
-Now something else entirely
-
-But I  changed this
+From the plot we can read off the predicted quarterly GDP growth for two years along with the confidence intervals at a 95\% level. Then we can compare these predicted values and the confidence interval to the actual observed growth rates per period. While we can claim that most actual values are within our confidence intervals (apart from the first predicted period 2009 Q2, where the actual growth is slightly below the lower bound), this has more to do with the uncertainty of our predictions rather than the accuracy. The CI intervals are quite large, generally spanning 3-3.5\% GDP growth, which makes our predictions quite useless (predicting that GDP growth will be between 0 and 3.5\% next quarter offers relatively no insight). Also our AR(1) model seems to consistently overestimate the actual values with the predictions, apart from one (2010 Q2), all observations are below the predicted line. Therefore our accuracy is quite weak and it seems that our model consistently overestimates the actual GDP growth in the prediction window. 
 
 \section{Question 8} \label{q8}
 

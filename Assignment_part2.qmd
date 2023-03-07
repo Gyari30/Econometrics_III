@@ -102,6 +102,18 @@ dfAssign_p2$UN_RATE <- ts(dfAssign_p2$UN_RATE, start = c(1987, 2), frequency = 4
 adl_4_4 <- dynlm(UN_RATE ~ L(UN_RATE, 1) + L(UN_RATE, 2) + L(UN_RATE, 3) + L(UN_RATE, 4) + L(GDP_QGR, 1) + L(GDP_QGR, 2) + L(GDP_QGR, 3) + L(GDP_QGR, 4), data = dfAssign_p2)
   
 coeftest(adl_4_4)
+
+adl_3_3 <- dynlm(UN_RATE ~ L(UN_RATE, 1) + L(UN_RATE, 2) + L(UN_RATE, 3) + L(GDP_QGR, 1) + L(GDP_QGR, 2) + L(GDP_QGR, 3), data = dfAssign_p2)
+  
+coeftest(adl_3_3)
+
+adl_3_2 <- dynlm(UN_RATE ~ L(UN_RATE, 1) + L(UN_RATE, 2) + L(UN_RATE, 3) + L(GDP_QGR, 1) + L(GDP_QGR, 2), data = dfAssign_p2)
+  
+coeftest(adl_3_2)
+
+adl_3_1 <- dynlm(UN_RATE ~ L(UN_RATE, 1) + L(UN_RATE, 2) + L(UN_RATE, 3) + L(GDP_QGR, 1), data = dfAssign_p2)
+  
+coeftest(adl_3_1)
 ```
 
 IT IS YET UNCLEAR HOW TO PROGRESS WITH THE RESTRICTIONS. DOES ONE RESTRICT CO-JOINTLY, START WITH X OR START WITH Y ALONE?
