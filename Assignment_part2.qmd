@@ -92,8 +92,11 @@ MAYBE SOME TEXT HERE? WE HAD NO QUESTIONS BUT JUST TO DESCRIBE THE PLOT?
 ar4_gdp <- arima(dfAssign_p2$GDP_QGR, order=c(4,0,0))
 coeftest(ar4_gdp)
 
-ar3_gdp <- arima(dfAssign_p2$GDP_QGR, order=c(3,0,0))
-coeftest(ar3_gdp)
+ar1_3_4_gdp <- arima(dfAssign_p2$GDP_QGR, order=c(4,0,0), fixed = c(NA,0,NA,NA,NA))
+coeftest(ar1_3_4_gdp)
+
+ar1_3_gdp <- arima(dfAssign_p2$GDP_QGR, order=c(3,0,0), fixed = c(NA,0,NA,NA))
+coeftest(ar1_3_gdp)
 # Stop here, 3rd lag coefficient is significant
 
 dfAssign_p2$GDP_QGR <- ts(dfAssign_p2$GDP_QGR, start = c(1987, 2), frequency = 4)

@@ -181,7 +181,7 @@ From the plot we can read off the predicted quarterly GDP growth for two years a
 
 \section{Question 8} \label{q8}
 
-Iteratively, we need to estimate the AR(4) model with the lags and at each step, exclude the one with the smallest t-value to make sure that we exclude the least significant lags. If we exclude the lags sequentially backwards, we arrive to the conclusion that the third lag coefficient is significant on the 10\% level but the second lag is not. Therefore, we need to estimate the model in different steps. 
+Iteratively, we need to estimate the AR(4) model with the lags and at each step, exclude the one with the highest p-value to make sure that we exclude the least significant lags. If we exclude the lags sequentially backwards, we arrive to the conclusion that the third lag coefficient is significant on the 10\% level but the second lag is not. Therefore, we need to estimate the model in different steps. 
 
 ```{r}
 ar4_10 <- arima(dfAssign_p1$GDP_QGR, order=c(4,0,0))
