@@ -201,13 +201,13 @@ Moreover, the ADL model is a time series method that can only suggest a relation
 
 \section{Question 5} \label{q5}
 
-For this question, we can use package functions to make predictions for our AR model:
+For this question, we can use package function \textit{predict()} to make predictions for our AR model:
 
 ```{r q5 AR pred}
 pred8 <- as.vector(predict(ar1_3_gdp, 8)[["pred"]])
 ```
 
-Unfortunately due to a bug, the \textit{dynlm} dynamic linear model estimation package is not compatible with either \textit{predict()} or \textit{forecast()} functions. Hence we need to implement our manual forecasting function:
+Unfortunately due to a bug, the \textit{dynlm} dynamic linear model estimation package is not compatible with either \textit{predict()} or \textit{forecast()} functions. Hence we need to implement our manual forecasting function, which uses the predictions from the AR model for GDP growth (the exogenous variable in the ADL model):
 
 ```{r ADL manual prediction function}
 #' Predictor function for ADL model
@@ -256,10 +256,15 @@ fPredADL <- function(model, dfData, iForward, vExgen){
 
 ```{r q5}
 predicted_result <- fPredADL(adl_3_1, dfData, 8, pred8)
-print(predicted_result)
+predicted_result
 ```
 
+```{r}
+predlbl <- c("2014Q2", "2014Q3", "2014Q4", "2015Q1", "2015Q2", "2015Q3", "2015Q4", "2016Q1")
+forecasted <- cbind(predlbl, data.frame(GDP=pred8, UN_RATE=predicted_result))
 
+kable(forecasted, caption="The predicted quarterly GDP growth rates using AR(1-3) and unemployment rates using ADL(1-3,1)", col.names = c("Quarter", "Predicted growth %", "Predicted unemployment %"), digits = 3, row.names = F)
+```
 
 \section{Question 6} \label{q6}
 
