@@ -210,6 +210,6 @@ autoplot(forecast_10, showgap = F) + geom_point(data = dfActuals, aes(x=x, y=y))
 Now in the case of the 90\% confidence interval, we estimate the model using an AR(3) since we find that the estimated model's third lag coefficient is significant on a 10\% level. Using this AR(3) model, we can obtain the predictions as well as the 90\% confidence interval similarly as before. We can see that the AR(3) model results in a better prediction model, because even the 90\% confidence interval estimate around the prediction yields about 3\% spread between lower and upper bounds. Furthermore, except for the first prediction in 2009 Q2, our predictions are all within the interval and the 2009 Q3 through 2010 Q1 predictions are quite accurately almost on the prediction line. Just like in the previous case, 2010 Q2 is severely underestimated which implies that the observation is probably an unexpectedly higher GDP growth, almost an outlier of growth in that environment. However the further we progress into time, the more inaccurate our predictions become and there is an appearing trend again that the AR(3) model will overestimate the predictions for the second half of 2010. Therefore, I would say that the model is a better predictor than the AR(1), although this might also be expected since the AR(3) takes more lags into account.
 
 
-## AMAZING WORK, I THINK WE SHOULD RENAME THE PLOTS AND THEN WE'RE GOOD.
+## AMAZING WORK, I THINK WE SHOULD RENAME THE PLOTS AND THEN WE'RE GOOD
 
 
