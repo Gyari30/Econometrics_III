@@ -85,20 +85,32 @@ ggplot(dfAssign_p2) +
 plot.ts(dfAssign_p2[,2:3], plot.type = c("multiple"), main="GDP quarterly growth and unemployment rate since 1987 Q2")
 ```
 
-MAYBE SOME TEXT HERE? WE HAD NO QUESTIONS BUT JUST TO DESCRIBE THE PLOT?
+The Dutch quarterly growth rates seems to be fluctuating around 1 $\%$ every quarter until it experiences a sharp drop to almost -3$\%$ at Quarter 1 of 2009. This growth rate reflect the influence of the economic recession. Afterwards, it rises again and fluctuate around 0$\%$, indicating that the economy have recovered, but not back to the full swing before the recession.
+
+Regarding the unemployment rate, it resembles a wave pattern. As of now, it is unclear how to relate this pattern to the GDP growth rate or the eco nomic recession. Thus, we proceed to model it in the following steps.
 
 ```{r}
 # Creating the autoregression of GDP growth
-ar4_gdp <- arima(dfAssign_p2$GDP_QGR, order=c(4,0,0))
-coeftest(ar4_gdp)
+ar4_gdp <- arima(dfAssign_p2$GDP_QGR, order=c(4,0,0)) 
+coeftest(ar4_gdp) #Remove the least significant lag: the second lag
 
 ar1_3_4_gdp <- arima(dfAssign_p2$GDP_QGR, order=c(4,0,0), fixed = c(NA,0,NA,NA,NA))
-coeftest(ar1_3_4_gdp)
+coeftest(ar1_3_4_gdp) #Remove the least significant lag: the forth lag
 
-ar1_3_gdp <- arima(dfAssign_p2$GDP_QGR, order=c(3,0,0), fixed = c(NA,0,NA,NA))
-coeftest(ar1_3_gdp)
-# Stop here, 3rd lag coefficient is significant
+ar1_3_gdp <- arima(dfAssign_p2$GDP_QGR, order=c(3,0,0), fixed = c(NA,0,NA,NA)) 
+coeftest(ar1_3_gdp) #Stop here, 1st and 3rd lag coefficients are significant
 
+```
+The final AR model is one with the first and third lag, we call it the AR(1-3) model.
+
+\begin{equation}
+\begin{aligned}
+X_t = 1.066 + 0.362*X_{t-1} + 0.242*X_{t-3} + \epsilon_t
+\end{aligned}
+\end{equation}
+
+Looking at the estimated coefficients, we can say that the quarterly GDP growth rate is influenced by the growth of the previous quarter and the third previous quarters. (MAYBE SOME MORE HYPOTHESIS WHY?).
+```{r}
 dfAssign_p2$GDP_QGR <- ts(dfAssign_p2$GDP_QGR, start = c(1987, 2), frequency = 4)
 dfAssign_p2$UN_RATE <- ts(dfAssign_p2$UN_RATE, start = c(1987, 2), frequency = 4)
 
@@ -108,43 +120,76 @@ coeftest(adl_4_4)
 adl_4_3 <- dynlm(UN_RATE ~ L(UN_RATE, 1) + L(UN_RATE, 2) + L(UN_RATE, 3) + L(UN_RATE, 4) + GDP_QGR + L(GDP_QGR, 1) + L(GDP_QGR, 2) + L(GDP_QGR, 3), data = dfAssign_p2)
 coeftest(adl_4_3)
 
-# Same but remove 2nd exogenous lag
+# Remove the 2nd exogenous lag.
 adl_4_3 <- dynlm(UN_RATE ~ L(UN_RATE, 1) + L(UN_RATE, 2) + L(UN_RATE, 3) + L(UN_RATE, 4) + GDP_QGR + L(GDP_QGR, 1) + L(GDP_QGR, 3), data = dfAssign_p2)
 coeftest(adl_4_3)
 
-# Same but remove 2nd exogenous lag and no lag exogen
+# Remove 2nd exogenous lag, and the exogenous variable with no lag.
 adl_4_3 <- dynlm(UN_RATE ~ L(UN_RATE, 1) + L(UN_RATE, 2) + L(UN_RATE, 3) + L(UN_RATE, 4) + L(GDP_QGR, 1) + L(GDP_QGR, 3), data = dfAssign_p2)
 coeftest(adl_4_3)
 
-# With second exogenous lag removed and no lag exogen 
+# Looking at the model above, we remove the 4th lag of the unemployment rate (autolag).
 adl_3_3 <- dynlm(UN_RATE ~ L(UN_RATE, 1) + L(UN_RATE, 2) + L(UN_RATE, 3) + L(GDP_QGR, 1) + L(GDP_QGR, 3), data = dfAssign_p2)
 coeftest(adl_3_3)
 
-# with no lag exogen removed
+# Remove the 3rd exogenous lag.
 adl_3_1 <- dynlm(UN_RATE ~ L(UN_RATE, 1) + L(UN_RATE, 2) + L(UN_RATE, 3) + L(GDP_QGR, 1), data = dfAssign_p2)
 coeftest(adl_3_1)
 
-# with second autolag and no lag exogen removed
+# Remove the second autolag.
 adl_3_1 <- dynlm(UN_RATE ~ L(UN_RATE, 1) + L(UN_RATE, 3) + L(GDP_QGR, 1), data = dfAssign_p2)
 coeftest(adl_3_1)
-```
 
+```
+The final ADL model is one with lag 1 and lag 3 of $Y_t$ and lag 1 of the exogenous variable $X_t$.
+
+\begin{equation}
+\begin{aligned}
+Y_t = 0.208 + 1.400*Y_{t-1} - 0.432*Y_{t-3} - 0.027*X_{t-1} + \epsilon_t
+\end{aligned}
+\end{equation}
+
+Looking at the coefficients of the final model, we can see that the quarterly unemployment rate is related to the unemployment rates of the previous and the 3rd pervious quarter, moreover, it is related to the GDP growth rate of the previous quarter. (MAYBE SOME MORE HYPOTHESIS WHY?).
 \section{Question 2} \label{q2}
+The short-run multiplier is the impact of a unit increase in $X_t$ on $Y_t$, which is the coefficient $\beta_0$ of $X_t$. Since $X_t$ is not significant in this model, the short run multiplier is $\beta_0=0$. 
+Interpretation: with every percent increase in the contemporaneous GDP growth rate, the quarterly unemployment rate of the same period is not affected.
 
-```{r q2}
+The 2-step-ahead multiplier is the impact of a unit increase in $X_t$ on $Y_{t+h}$, which is:
 
-```
+\begin{equation}
+\begin{aligned}
+\phi^2\beta_0 + \phi\beta_1 = 0 + 1.400*(- 0.027) = -0.0378
+\end{aligned}
+\end{equation}
+Interpretation: with every percent increase in the current GDP growth rate, the quarterly unemployment rate of the second following quarter decreases by 0.0378%.
 
+The long-run multiplier is the total impact of a permanent unit increase in $X_t$ on $Y_t$. Let $\phi(L)=1-\phi_1L-...-\phi_pL^p$ and $\beta(L)=\beta_0+\beta_1L+...+\beta_qL^q$, then, the long-run multiplier is given by:
 
+\begin{equation}
+\begin{aligned}
+\Delta\Bar{Y} &= \frac{\beta(1)}{\phi(1)} = \frac{\beta_1}{1-\phi_1-\phi_3} \\
+&= \frac{-0.027}{1-1.400+0.432} =-0.84375
+\end{aligned}
+\end{equation}
 
+Interpretation: with every permanent percent increase in the current GDP growth rate, the quarterly un-employment rate decrease by 0.84375% on average.
 
 \section{Question 3} \label{q3}
+Statement: “An increase in the GDP growth rate causes a reduction in the unemployment rate.”
 
-```{r q3}
+Looking at the short-run, 2-step ahead, and the long-run multipliers above, we still cannot confirm this statement. This is because the multipliers above only indicates association, not causation.
 
-```
+The multipliers above measure relationship between the dependent variable and the (lagged values) of the independent variables. It tells us the impact of a change in the independent variable on the dependent variable, holding all other factors constant. However, this change can be caused by 3 main reasons:
 
+1. Causation: the independent variable causes the dependent variable.
 
+2. Reserved causality: the dependent variable causes the independent variable.
+
+3. Spurious association: it can occur when two variables are both influenced by a common cause or when one variable influences a third variable, which in turn influences the second variable.
+
+To establish causation, we need to rely on other methods such as randomized controlled trials or natural experiments, which can help us isolate the effect of the independent variable on the dependent variable while controlling for other factors that may influence the outcome.
+
+Moreover, the ADL model is a time series method that can only suggest a relationship between variables based on observed data. It cannot establish causality on its own. Therefore, we need to exercise caution in interpreting the results of the ADL model and use other methods to establish causation.
 
 \section{Question 4} \label{q4}
 
