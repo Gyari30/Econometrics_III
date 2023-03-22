@@ -102,21 +102,30 @@ coeftest(ar1_3_gdp)
 dfAssign_p2$GDP_QGR <- ts(dfAssign_p2$GDP_QGR, start = c(1987, 2), frequency = 4)
 dfAssign_p2$UN_RATE <- ts(dfAssign_p2$UN_RATE, start = c(1987, 2), frequency = 4)
 
-adl_4_4 <- dynlm(UN_RATE ~ L(UN_RATE, 1) + L(UN_RATE, 2) + L(UN_RATE, 3) + L(UN_RATE, 4) + L(GDP_QGR, 1) + L(GDP_QGR, 2) + L(GDP_QGR, 3) + L(GDP_QGR, 4), data = dfAssign_p2)
-  
+adl_4_4 <- dynlm(UN_RATE ~ L(UN_RATE, 1) + L(UN_RATE, 2) + L(UN_RATE, 3) + L(UN_RATE, 4) + GDP_QGR + L(GDP_QGR, 1) + L(GDP_QGR, 2) + L(GDP_QGR, 3) + L(GDP_QGR, 4), data = dfAssign_p2)
 coeftest(adl_4_4)
 
-adl_3_3 <- dynlm(UN_RATE ~ L(UN_RATE, 1) + L(UN_RATE, 2) + L(UN_RATE, 3) + L(GDP_QGR, 1) + L(GDP_QGR, 2) + L(GDP_QGR, 3), data = dfAssign_p2)
-  
+adl_4_3 <- dynlm(UN_RATE ~ L(UN_RATE, 1) + L(UN_RATE, 2) + L(UN_RATE, 3) + L(UN_RATE, 4) + GDP_QGR + L(GDP_QGR, 1) + L(GDP_QGR, 2) + L(GDP_QGR, 3), data = dfAssign_p2)
+coeftest(adl_4_3)
+
+# Same but remove 2nd exogenous lag
+adl_4_3 <- dynlm(UN_RATE ~ L(UN_RATE, 1) + L(UN_RATE, 2) + L(UN_RATE, 3) + L(UN_RATE, 4) + GDP_QGR + L(GDP_QGR, 1) + L(GDP_QGR, 3), data = dfAssign_p2)
+coeftest(adl_4_3)
+
+# Same but remove 2nd exogenous lag and no lag exogen
+adl_4_3 <- dynlm(UN_RATE ~ L(UN_RATE, 1) + L(UN_RATE, 2) + L(UN_RATE, 3) + L(UN_RATE, 4) + L(GDP_QGR, 1) + L(GDP_QGR, 3), data = dfAssign_p2)
+coeftest(adl_4_3)
+
+# With second exogenous lag removed
+adl_3_3 <- dynlm(UN_RATE ~ L(UN_RATE, 1) + L(UN_RATE, 2) + L(UN_RATE, 3) + L(GDP_QGR, 1) + GDP_QGR + L(GDP_QGR, 3), data = dfAssign_p2)
 coeftest(adl_3_3)
 
-adl_3_2 <- dynlm(UN_RATE ~ L(UN_RATE, 1) + L(UN_RATE, 2) + L(UN_RATE, 3) + L(GDP_QGR, 1) + L(GDP_QGR, 2), data = dfAssign_p2)
-  
-coeftest(adl_3_2)
-
-adl_3_1 <- dynlm(UN_RATE ~ L(UN_RATE, 1) + L(UN_RATE, 2) + L(UN_RATE, 3) + L(GDP_QGR, 1), data = dfAssign_p2)
-  
+adl_3_1 <- dynlm(UN_RATE ~ L(UN_RATE, 1) + L(UN_RATE, 2) + L(UN_RATE, 3) + GDP_QGR + L(GDP_QGR, 1), data = dfAssign_p2)
 coeftest(adl_3_1)
+
+adl_3_0 <- dynlm(UN_RATE ~ L(UN_RATE, 1) + L(UN_RATE, 2) + L(UN_RATE, 3), data = dfAssign_p2)
+coeftest(adl_3_0)
+
 ```
 
 IT IS YET UNCLEAR HOW TO PROGRESS WITH THE RESTRICTIONS. DOES ONE RESTRICT CO-JOINTLY, START WITH X OR START WITH Y ALONE?
