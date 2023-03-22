@@ -67,6 +67,8 @@ dfAssign_p2 <- as.data.frame(read_csv("data/data_assign_p2.csv"))
 # Encode quarters
 dfAssign_p2 <- cbind(dfAssign_p2,c(seq(1,nrow(dfAssign_p2),length.out=nrow(dfAssign_p2))))
 colnames(dfAssign_p2) <- c("obs", "GDP_QGR", "UN_RATE", "ind")
+
+dfData <- dfAssign_p2[,2:3]
 ```
 
 \section{Question 1} \label{q1}
@@ -253,13 +255,8 @@ fPredADL <- function(model, dfData, iForward, vExgen){
 ```
 
 ```{r q5}
-dfData <- dfAssign_p2[,2:3]
-
-model <- adl_3_1
-vExgen <- pred8
-iForward = 8
-
 predicted_result <- fPredADL(adl_3_1, dfData, 8, pred8)
+print(predicted_result)
 ```
 
 
