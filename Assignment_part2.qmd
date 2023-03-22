@@ -116,19 +116,18 @@ coeftest(adl_4_3)
 adl_4_3 <- dynlm(UN_RATE ~ L(UN_RATE, 1) + L(UN_RATE, 2) + L(UN_RATE, 3) + L(UN_RATE, 4) + L(GDP_QGR, 1) + L(GDP_QGR, 3), data = dfAssign_p2)
 coeftest(adl_4_3)
 
-# With second exogenous lag removed
-adl_3_3 <- dynlm(UN_RATE ~ L(UN_RATE, 1) + L(UN_RATE, 2) + L(UN_RATE, 3) + L(GDP_QGR, 1) + GDP_QGR + L(GDP_QGR, 3), data = dfAssign_p2)
+# With second exogenous lag removed and no lag exogen 
+adl_3_3 <- dynlm(UN_RATE ~ L(UN_RATE, 1) + L(UN_RATE, 2) + L(UN_RATE, 3) + L(GDP_QGR, 1) + L(GDP_QGR, 3), data = dfAssign_p2)
 coeftest(adl_3_3)
 
-adl_3_1 <- dynlm(UN_RATE ~ L(UN_RATE, 1) + L(UN_RATE, 2) + L(UN_RATE, 3) + GDP_QGR + L(GDP_QGR, 1), data = dfAssign_p2)
+# with no lag exogen removed
+adl_3_1 <- dynlm(UN_RATE ~ L(UN_RATE, 1) + L(UN_RATE, 2) + L(UN_RATE, 3) + L(GDP_QGR, 1), data = dfAssign_p2)
 coeftest(adl_3_1)
 
-adl_3_0 <- dynlm(UN_RATE ~ L(UN_RATE, 1) + L(UN_RATE, 2) + L(UN_RATE, 3), data = dfAssign_p2)
-coeftest(adl_3_0)
-
+# with second autolag and no lag exogen removed
+adl_3_1 <- dynlm(UN_RATE ~ L(UN_RATE, 1) + L(UN_RATE, 3) + L(GDP_QGR, 1), data = dfAssign_p2)
+coeftest(adl_3_1)
 ```
-
-IT IS YET UNCLEAR HOW TO PROGRESS WITH THE RESTRICTIONS. DOES ONE RESTRICT CO-JOINTLY, START WITH X OR START WITH Y ALONE?
 
 \section{Question 2} \label{q2}
 
