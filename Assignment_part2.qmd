@@ -60,7 +60,7 @@ biblio-title: References
 # load packages
 if(!require(pacman)){install.packages("pacman")}
 
-p_load(devtools,tidyverse,dplyr,ggplot2,latex2exp,stargazer, fixest, modelsummary, knitr, readr, tseries, lmtest, forecast, dynlm, vars)
+p_load(devtools,tidyverse,dplyr,ggplot2,latex2exp,stargazer, fixest, modelsummary, knitr, readr, tseries, lmtest, forecast, dynlm, vars, gridExtra)
 
 dfAssign_p2 <- as.data.frame(read_csv("data/data_assign_p2.csv"))
 
@@ -106,11 +106,11 @@ The final AR model is one with the first and third lag, we call it the AR(1-3) m
 
 \begin{equation}
 \begin{aligned}
-X_t = 1.066 + 0.362*X_{t-1} + 0.242*X_{t-3} + \epsilon_t
+X_t = 1.066 + 0.362*X_{t-1} + 0.242*X_{t-3} + u_t
 \end{aligned}
 \end{equation}
 
-Looking at the estimated coefficients, we can say that the quarterly GDP growth rate is influenced by the growth of the previous quarter and the third previous quarters. (MAYBE SOME MORE HYPOTHESIS WHY?).
+Looking at the estimated coefficients, we can say that the quarterly GDP growth rate is influenced by the growth of the previous quarter and the third previous quarters.
 ```{r}
 dfAssign_p2$GDP_QGR <- ts(dfAssign_p2$GDP_QGR, start = c(1987, 2), frequency = 4)
 dfAssign_p2$UN_RATE <- ts(dfAssign_p2$UN_RATE, start = c(1987, 2), frequency = 4)
@@ -145,11 +145,14 @@ The final ADL model is one with lag 1 and lag 3 of $Y_t$ and lag 1 of the exogen
 
 \begin{equation}
 \begin{aligned}
-Y_t = 0.208 + 1.400*Y_{t-1} - 0.432*Y_{t-3} - 0.027*X_{t-1} + \epsilon_t
+Y_t &= 0.208 + 1.400*Y_{t-1} - 0.432*Y_{t-3} - 0.027*X_{t-1} + \epsilon_t\\
+X_t &= 1.066 + 0.362*X_{t-1} + 0.242*X_{t-3} + u_t
 \end{aligned}
 \end{equation}
 
-Looking at the coefficients of the final model, we can see that the quarterly unemployment rate is related to the unemployment rates of the previous and the 3rd pervious quarter, moreover, it is related to the GDP growth rate of the previous quarter. (MAYBE SOME MORE HYPOTHESIS WHY?).
+Looking at the coefficients of the final model, we can see that the quarterly unemployment rate is related to the unemployment rates of the previous and the 3rd pervious quarter, moreover, it is related to the GDP growth rate of the previous quarter. 
+
+Moreover, it seems that if GDP growth rate and the unemployment rate of the previous quarter increase, unemployment decreases; and if the unemployment rate of the third previous quarter increases, the current quarter's unemployment rate decreases.
 \section{Question 2} \label{q2}
 The short-run multiplier is the impact of a unit increase in $X_t$ on $Y_t$, which is the coefficient $\beta_0$ of $X_t$. Since $X_t$ is not significant in this model, the short run multiplier is $\beta_0=0$. 
 Interpretation: with every percent increase in the contemporaneous GDP growth rate, the quarterly unemployment rate of the same period is not affected.
@@ -291,14 +294,110 @@ forecasted <- cbind(predlbl, data.frame(GDP=pred8, UN_RATE=predicted_result))
 
 kable(forecasted, caption="The predicted quarterly GDP growth rates using AR(1-3) and unemployment rates using ADL(1-3,1)", col.names = c("Quarter", "Predicted growth %", "Predicted unemployment %"), digits = 3, row.names = F)
 ```
-The obtained estimates indicates that the GDP growth rates increases steadily and quickly. On the other hand, the unemployment rates experiences fluctuations and there is no clear increasing trend.
+The obtained estimates indicate that the GDP growth rates increases steadily. On the other hand, the unemployment rates experiences fluctuations and there is no clear increasing trend.
 
 \section{Question 6} \label{q6}
+```{r}
+#' IRF function
+fIRF = function(n_periods, init_y, init_x, epsilon, beta_1, beta_3, phi_1, phi_3, theta_1){
+  # Create vectors to store the results
+  y_values <- rep(0, n_periods + 1)
+  x_values <- rep(0, n_periods + 1)
+  y_derivs <- rep(0, n_periods + 1)
+  x_derivs <- rep(0, n_periods + 1)
+  
+  # calculate derivatives for x from t=s to t=s+2
+  x_derivs[1] <- 1
+  x_derivs[2] <- beta_1
+  x_derivs[3] <- beta_1^2
+  # calculate derivatives for y from t=s to t=s+2
+  y_derivs[1] <- 0
+  y_derivs[2] <- theta_1
+  y_derivs[3] <- phi_1*theta_1 + theta_1*beta_1
+  
+  # calculate the rest of x and y_derives
+  for (i in 4:length(x_derivs)) {
+    x_derivs[i] = beta_1*x_derivs[i-1] + beta_3*x_derivs[i-3]
+    y_derivs[i] = phi_1*y_derivs[i-1] + phi_3*y_derivs[i-3] + theta_1*x_derivs[i-1]
+  }
+  
+  # Calculate X and Y values
+  y_values[1] <- init_y
+  x_values[1] <- init_x
+  for (i in 2:(n_periods+1)){
+    x_values[i] = init_x+ x_derivs[i]*epsilon
+    y_values[i] = init_y+ y_derivs[i]*epsilon
+  }
+  return(list(x_values=x_values,y_values=y_values))
+}
+
+# Function to plot IRF values
+plotIRF = function(n_periods, x_values, y_values){
+  # Create two time series vectors
+  t <- 1:(n_periods+1)
+  y1 <- x_values
+  y2 <- y_values
+  
+  df1 <- data.frame(t, y1)
+  df2 <- data.frame(t, y2)
+  
+  # Create two plots, one for each time series vector, with different y-limits
+  p1 <- ggplot(df1, aes(x = t, y = y1)) +
+    geom_line(color = "blue") +
+    scale_y_continuous(limits = c(min(x_values), max(x_values)), expand = c(0, 0)) +
+    labs(x = "Time", y = "GDP")
+  
+  p2 <- ggplot(df2, aes(x = t, y = y2)) +
+    geom_line(color = "red") +
+    scale_y_continuous(limits = c(min(y_values), max(y_values)), expand = c(0, 0)) +
+    labs(x = "Time", y = "Unemployment")
+  
+  # Combine the two plots into one using the gridExtra package
+  grid.arrange(p1, p2, nrow = 2)
+}
+```
+
 
 \subsection{Question 6a} \label{q6a}
+```{r}
+n_periods=100
+init_y = 0.078
+init_x = -0.0037
+
+# Coeficients of AR model
+beta_1 = 0.362
+beta_3 = 0.242
+
+# Coefficients of ADL model
+phi_1 = 1.400
+phi_3 = -0.432
+theta_1 = -0.027
+
+# For the positive scenarios
+epsilon = 0.02
+lIRF= fIRF(n_periods, init_y, init_x, epsilon, beta_1, beta_3, phi_1, phi_3, theta_1)
+x_values=lIRF$x_values
+y_values=lIRF$y_values
+plotIRF(n_periods, x_values, y_values)
+```
+In this scenario, the GDP growth rate got a boost of positive 2% at time 0, and then the impact of the shock quickly decreases, and GDP growth decreases close to the original rate at around t=12, then the effect completely dies down at around t=25.
+
+On the other hand, the effect of the shock on the Unemployment rate shows a more gradual oscillating behaviour and the effect dies down at a much later stage. When the GDP growth rate received a boost, unemployment rate quickly decrease. However, when the effect of the boost becomes smaller, and the GDP growth rate returns to a negative value, the Unemployment goes up again. Then the system reaches the steady state.
+
+This behavior of the model makes sense, because as the GDP growth rate increases, Unemployment should decreases.
 
 \subsection{Question 6b} \label{q6b}
+```{r}
+# For the negative scenarios
+epsilon = -0.02
+lIRF= fIRF(n_periods, init_y, init_x, epsilon, beta_1, beta_3, phi_1, phi_3, theta_1)
+x_values=lIRF$x_values
+y_values=lIRF$y_values
+plotIRF(n_periods, x_values, y_values)
+```
+In the bad scenario where the GDP rate experience a negative shock of 2%, the behaviour of the system is exactly the opposite of the previous scenario. Specifically, we see a decrease in GDP growth rate and increase in unemployment rate. The effect of the shock on GDP is more prononced in magnitude and short-lived in terms of convergence time. The effect on unemployment rate is more gradual.
 
+This behavior of the model makes sense, because as the GDP growth rate decreases, Unemployment should increases.
 
 
 
