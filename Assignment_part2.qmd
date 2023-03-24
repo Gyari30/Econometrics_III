@@ -298,7 +298,7 @@ The obtained estimates indicate that the GDP growth rates increases steadily. On
 
 \section{Question 6} \label{q6}
 ```{r}
-#' IRF function
+# IRF function
 fIRF = function(n_periods, init_y, init_x, epsilon, beta_1, beta_3, phi_1, phi_3, theta_1){
   # Create vectors to store the results
   y_values <- rep(0, n_periods + 1)
