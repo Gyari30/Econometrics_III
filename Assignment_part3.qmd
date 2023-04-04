@@ -67,12 +67,30 @@ dfAssign_p3 <- as.data.frame(read_csv("data/data_assign_p3.csv"))
 
 \section{Question 1} \label{q1}
 
+```{r q1}
 
+```
 
 \section{Question 2} \label{q2}
 
+```{r q2}
+
+```
+
 \section{Question 3} \label{q3}
+
+```{r q3}
+
+```
 
 \section{Question 4} \label{q4}
 
+```{r q4}
+
+```
+
 \section{Question 5} \label{q5}
+
+```{r q5}
+
+```
