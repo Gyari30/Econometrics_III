@@ -87,7 +87,7 @@ plot.ts(dfAssign_p4$CONS, main="Quarterly Aggregate Consumption since 1988 Q1", 
 plot.ts(dfAssign_p4$INC, main="Quarterly Aggregate Income since 1988 Q1", ylab="Aggregate Income")
 ```
 
-The two plots above show the shape of the quarterly aggregate consumption and quarterly aggregate income in the Netherlands. From this we can see that due to the aggregate nature of the two series, the series are not stationary at first glance.
+The two plots above show the shape of the quarterly aggregate consumption and quarterly aggregate income in the Netherlands. From this we can see that due to the aggregate nature of the two series, the series are not likely to be stationary at first glance.
 
 
 ```{r q2 acf}
@@ -105,14 +105,28 @@ From the ACF and PACF plots for the consumption and income components of the GDP
 \section{Question 3} \label{q3}
 
 ```{r q3}
+adf.test(dfAssign_p4$CONS)
 
+adf.test(dfAssign_p4$INC)
 ```
+
+Based on the test results, we cannot reject in either case that the series would be non-stationary. Since we do not find sufficient evidence for the stationarity, we can stay at the null-hypothesis of the series being non-stationary. 
 
 \section{Question 4} \label{q4}
 
 ```{r q4}
+d1_CONS <- diff(dfAssign_p4$CONS, differences = 1)
 
+d1_INC <- diff(dfAssign_p4$INC, differences = 1)
+
+adf.test(d1_CONS)
+
+adf.test(d1_INC)
 ```
+
+In the case of the first-difference series, we still cannot reject the null hypothesis on the first case (consumption), however the second Augmented Dickey-Fuller test has a p-value of $p= 2.71\%$ and hence can be rejected at a 5\% significance level. This means that the first difference of the income component of the GDP might be stationary.
+
+order of cointegration?
 
 \section{Question 5} \label{q5}
 
