@@ -63,7 +63,15 @@ if(!require(pacman)){install.packages("pacman")}
 p_load(devtools,tidyverse,dplyr,ggplot2,latex2exp,stargazer, fixest, modelsummary, knitr, readr, tseries, lmtest, forecast, dynlm, vars, gridExtra)
 
 dfAssign_p4 <- as.data.frame(read_csv("data/data_assign_p4.csv"))
+
+# Encode quarters
+dfAssign_p4 <- cbind(dfAssign_p4,c(seq(1,nrow(dfAssign_p4),length.out=nrow(dfAssign_p4))))
+colnames(dfAssign_p4) <- c("obs", "CONS", "INC", "TIME")
 ```
+
+We are always more interested in estimating ADL(1,1) instead of 1st diff ADL(1,1) because we are not able to say anything about the long run equilibrium in case the 1st diff are used
+
+
 
 \section{Question 1} \label{q1}
 
@@ -74,8 +82,25 @@ dfAssign_p4 <- as.data.frame(read_csv("data/data_assign_p4.csv"))
 \section{Question 2} \label{q2}
 
 ```{r q2}
+plot.ts(dfAssign_p4$CONS, main="Quarterly Aggregate Consumption since 1988 Q1", ylab="Aggregate Consumption")
 
+plot.ts(dfAssign_p4$INC, main="Quarterly Aggregate Income since 1988 Q1", ylab="Aggregate Income")
 ```
+
+The two plots above show the shape of the quarterly aggregate consumption and quarterly aggregate income in the Netherlands. From this we can see that due to the aggregate nature of the two series, the series are not stationary at first glance.
+
+
+```{r q2 acf}
+acf(dfAssign_p4$CONS,12,pl=T, main="ACF of the Aggregate Consumption")
+
+acf(dfAssign_p4$INC,12,pl=T, main="ACF of the Aggregate Income")
+
+pacf(dfAssign_p4$CONS,12,pl=T, main="PACF of the Aggregate Consumption")
+
+pacf(dfAssign_p4$INC,12,pl=T, main="PACF of the Aggregate Income")
+```
+
+From the ACF and PACF plots for the consumption and income components of the GDP, we can see that due to the aggregate nature of the series, both the consumption and income autocorrelations show significant correlation (above the white-noise threshold) across all lags all the way to the 12th period lag. However, when we investigate the partial autocorrelation function results, both variables have insignificant correlations for all lags (1st to 12th). While some correlations are more pronounced for consumption than for income, no values reach the white-noise threshold and therefore are not very significant.
 
 \section{Question 3} \label{q3}
 
