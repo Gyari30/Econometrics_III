@@ -146,14 +146,14 @@ plot(dfAssign_p3$MICROSOFT, type = "l", xlab = "Time", ylab = "MICROSOFT")
 # Calculate and Plot ACF and PACF for Apple
 acf(dfAssign_p3[["APPLE"]], 12, pl=F)
 acf(dfAssign_p3[["APPLE"]], 12, pl=T)
-pacf(dfAssign_p3[["APPLE"]], lag.max = 12, pl=F)
-pacf(dfAssign_p3[["APPLE"]], lag.max = 12, pl=T)
+pacf(dfAssign_p3[["APPLE"]], 12, pl=F)
+pacf(dfAssign_p3[["APPLE"]], 12, pl=T)
 
 # Calculate ACF and PACF for Microsoft
 acf(dfAssign_p3[["MICROSOFT"]], 12, pl=F)
 acf(dfAssign_p3[["MICROSOFT"]], 12, pl=T)
-pacf(dfAssign_p3[["MICROSOFT"]], lag.max = 12, pl=F)
-pacf(dfAssign_p3[["MICROSOFT"]], lag.max = 12, pl=T)
+pacf(dfAssign_p3[["MICROSOFT"]], 12, pl=F)
+pacf(dfAssign_p3[["MICROSOFT"]], 12, pl=T)
 ```
 We can see that all 12 lags of the autocorrelation function (ACF) are significant but only one lag of the partial autocorrelation function (PACF) is significant, it suggests that the dynamic of these stocks may have a high degree of autocorrelation but can be adequately modeled using a simple autoregressive (AR) model with one lag.
 
