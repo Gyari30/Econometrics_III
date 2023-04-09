@@ -176,25 +176,25 @@ DO YOU AGREE WITH THIS ANSWER? I'M NOT VERY SURE.
 \section{Question 3} \label{q3}
 
 ```{r q3}
-ADF_Apple = ur.df(dfAssign_p3$APPLE, type =  "none", lags = 1,
+ADF_Apple = ur.df(dfAssign_p3$APPLE, type =  "none", lags = 10,
       selectlags = "BIC")
-ADF_Exxon = ur.df(dfAssign_p3$EXXON_MOBIL, type =  "none", lags = 1,
+ADF_Exxon = ur.df(dfAssign_p3$EXXON_MOBIL, type =  "none", lags = 10,
       selectlags = "BIC")
-ADF_Ford = ur.df(dfAssign_p3$FORD, type =  "none", lags = 1,
+ADF_Ford = ur.df(dfAssign_p3$FORD, type =  "none", lags = 10,
       selectlags = "BIC")
-ADF_GenElectric = ur.df(dfAssign_p3$GEN_ELECTRIC, type =  "none", lags = 1,
+ADF_GenElectric = ur.df(dfAssign_p3$GEN_ELECTRIC, type =  "none", lags = 10,
       selectlags = "BIC")
-ADF_Intel = ur.df(dfAssign_p3$INTEL, type =  "none", lags = 1,
+ADF_Intel = ur.df(dfAssign_p3$INTEL, type =  "none", lags = 10,
       selectlags = "BIC")
-ADF_Micro = ur.df(dfAssign_p3$MICROSOFT, type =  "none", lags = 1,
+ADF_Micro = ur.df(dfAssign_p3$MICROSOFT, type =  "none", lags = 10,
       selectlags = "BIC")
-ADF_Netflix = ur.df(dfAssign_p3$NETFLIX, type =  "none", lags = 1,
+ADF_Netflix = ur.df(dfAssign_p3$NETFLIX, type =  "none", lags = 10,
       selectlags = "BIC")
-ADF_Nokia = ur.df(dfAssign_p3$NOKIA, type =  "none", lags = 1,
+ADF_Nokia = ur.df(dfAssign_p3$NOKIA, type =  "none", lags = 10,
       selectlags = "BIC")
-ADF_SP500 = ur.df(dfAssign_p3$SP500, type =  "none", lags = 1,
+ADF_SP500 = ur.df(dfAssign_p3$SP500, type =  "none", lags = 10,
       selectlags = "BIC")
-ADF_Yahoo = ur.df(dfAssign_p3$YAHOO, type =  "none", lags = 1,
+ADF_Yahoo = ur.df(dfAssign_p3$YAHOO, type =  "none", lags = 10,
       selectlags = "BIC")
 ```
 \begin{table}[H]
@@ -203,15 +203,15 @@ ADF_Yahoo = ur.df(dfAssign_p3$YAHOO, type =  "none", lags = 1,
 \hline
              & ADF test statictis & lags used & p-value & 10 $\%$ critical value \\ \hline
 Apple        & 0.892              & 1         & 0.372   & -1.62                  \\
-Exxon Mobil  & 0.091              & 1         & 0.928   & -1.62                  \\
-Ford         & 0.067              & 1         & 0.946   & -1.62                  \\
-Gen Electric & -1.361             & 1         & 0.174   & -1.62                  \\
-Intel        & -0.358             & 1         & 0.721   & -1.62                  \\
-Microsoft    & -0.418             & 1         & 0.676   & -1.62                  \\
+Exxon Mobil  & 0.264              & 2         & 0.792   & -1.62                  \\
+Ford         & 0.132              & 1         & 0.895   & -1.62                  \\
+Gen Electric & -1.218             & 1         & 0.174   & -1.62                  \\
+Intel        & -0.252             & 1         & 0.800   & -1.62                  \\
+Microsoft    & -0.313             & 1         & 0.754   & -1.62                  \\
 Netflix      & 0.136              & 1         & 0.892   & -1.62                  \\
-Nokia        & -1.255             & 1         & 0.210   & -1.62                  \\
-SP500        & -0.139             & 1         & 0.889   & -1.62                  \\
-Yahoo        & -1.215             & 1         & 0.224   & -1.62                 
+Nokia        & -1.183             & 3         & 0.237   & -1.62                  \\
+SP500        & -0.045             & 1         & 0.964   & -1.62                  \\
+Yahoo        & -1.179             & 1         & 0.239   & -1.62                 
 \end{tabular}
 \caption{ADF test results for all 10 stocks}
 \end{table}

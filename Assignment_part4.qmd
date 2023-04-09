@@ -60,7 +60,7 @@ biblio-title: References
 # load packages
 if(!require(pacman)){install.packages("pacman")}
 
-p_load(devtools,tidyverse,dplyr,ggplot2,latex2exp,stargazer, fixest, modelsummary, knitr, readr, tseries, lmtest, forecast, dynlm, vars, gridExtra)
+p_load(devtools,tidyverse,dplyr,ggplot2,latex2exp,stargazer, fixest, modelsummary, knitr, readr, tseries, lmtest, forecast, dynlm, vars, xtable)
 
 dfAssign_p4 <- as.data.frame(read_csv("data/data_assign_p4.csv"))
 
@@ -71,14 +71,108 @@ colnames(dfAssign_p4) <- c("obs", "CONS", "INC", "TIME")
 
 We are always more interested in estimating ADL(1,1) instead of 1st diff ADL(1,1) because we are not able to say anything about the long run equilibrium in case the 1st diff are used
 
-
-
 \section{Question 1} \label{q1}
 
 ```{r q1}
+# Set the parameters
+gamma <- 0.5
+sigma_u <- 1
+sigma_v <- 1
+phi <- 0.9
+init_step = 200
+max_T = 2000
 
+# Function to simulate all data
+sim_data <- function(T) {
+  vt <- rnorm(T, mean = 0, sd = sqrt(sigma_v))
+  ut <- rnorm(T, mean = 0, sd = sqrt(sigma_u))
+  
+  #X_t and Y_t in the cointergrated model
+  xt_cointergrated <- cumsum(vt) 
+  yt_cointergrated <- gamma * xt_cointergrated + ut
+  
+  #X_t and Y_t in the stationary model
+  xt_staionary <- numeric(T)
+  xt_staionary[1] <- vt[1]
+  for (t in 2:T) {
+    xt_staionary[t] <- phi * xt_staionary[t-1] + vt[t]
+  }
+  yt_staionary <- gamma * xt_staionary + ut
+  
+  return(list(xt_cointergrated = xt_cointergrated, yt_cointergrated = yt_cointergrated,
+              xt_staionary = xt_staionary, yt_staionary = yt_staionary))
+}
+
+# Initialize dataframe to store results
+sim_results <- data.frame(
+  T = numeric(),
+  beta_hat_1 = numeric(),
+  t_stat_1 = numeric(),
+  R_squared_1 = numeric(),
+  beta_hat_2 = numeric(),
+  t_stat_2 = numeric(),
+  R_squared_2 = numeric(),
+  stringsAsFactors = FALSE
+)
+
+# For each sample size T from T = 200,400,..., 1000
+for (T in seq(init_step, max_T, 200)) {
+  lData = sim_data(T)
+  
+  # Cointegrated series
+  X1_t = lData$xt_cointergrated
+  Y1_t = lData$yt_cointergrated
+  
+  # Stationary series
+  X2_t = lData$xt_staionary
+  Y2_t = lData$yt_staionary  
+    
+  # Perform linear regression and get summary stats on both models
+  model1 <- lm(Y1_t ~ X1_t)
+  summary1 <- tidy(model1)
+  beta_hat1 <- summary1$estimate[2]
+  t_stat1 <- summary1$statistic[2]
+  R_squared1 <- summary(model1)$r.squared
+  
+  model2 <- lm(Y2_t ~ X2_t)
+  summary2 <- tidy(model2)
+  beta_hat2 <- summary2$estimate[2]
+  t_stat2 <- summary2$statistic[2]
+  R_squared2 <- summary(model2)$r.squared
+  
+  # Store results
+  sim_results <- sim_results %>% 
+    add_row(T = T,
+          beta_hat_1 = beta_hat1,
+          t_stat_1 = t_stat1,
+          R_squared_1 = R_squared1,
+          beta_hat_2 = beta_hat2,
+          t_stat_2 = t_stat2,
+          R_squared_2 = R_squared2,
+          )
+}
 ```
 
+\begin{table}[H]
+\centering
+\begin{tabular}{rrrrrrrr}
+  \hline
+ & T & beta\_hat\_1 & t\_stat\_1 & R\_squared\_1 & beta\_hat\_2 & t\_stat\_2 & R\_squared\_2 \\ 
+  \hline
+1 & 200.00 & 0.54 & 24.62 & 0.75 & 0.51 & 13.08 & 0.46 \\ 
+  2 & 400.00 & 0.50 & 75.90 & 0.94 & 0.49 & 21.06 & 0.53 \\ 
+  3 & 600.00 & 0.50 & 85.59 & 0.92 & 0.49 & 25.48 & 0.52 \\ 
+  4 & 800.00 & 0.50 & 124.18 & 0.95 & 0.51 & 33.60 & 0.59 \\ 
+  5 & 1000.00 & 0.50 & 137.93 & 0.95 & 0.49 & 32.81 & 0.52 \\ 
+  6 & 1200.00 & 0.50 & 211.06 & 0.97 & 0.50 & 40.04 & 0.57 \\ 
+  7 & 1400.00 & 0.50 & 553.08 & 1.00 & 0.50 & 39.90 & 0.53 \\ 
+  8 & 1600.00 & 0.50 & 244.21 & 0.97 & 0.49 & 43.78 & 0.55 \\ 
+  9 & 1800.00 & 0.50 & 255.31 & 0.97 & 0.51 & 48.00 & 0.56 \\ 
+  10 & 2000.00 & 0.50 & 415.59 & 0.99 & 0.51 & 51.27 & 0.57 \\ 
+   \hline
+\end{tabular}
+\end{table}
+Looking at the results of model 1 (using non-stationary cointegrated variables), we can see that the $\hat\beta$ estimates are quite reliable and consistent, with higher T-statistics and higher R-squared scores. This indicates that we did not run into the spurious regression problems. On the other hand, the result of model 2 suggests that the model perform poorly, with lower T-statistics and low R-squared scores suggest that the model perform poorly and the results are not reliable. This suggests that we run into teh spurious regression problems.
 \section{Question 2} \label{q2}
 
 ```{r q2}
