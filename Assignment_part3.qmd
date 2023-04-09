@@ -60,7 +60,7 @@ biblio-title: References
 # load packages
 if(!require(pacman)){install.packages("pacman")}
 
-p_load(devtools,tidyverse,dplyr,ggplot2,latex2exp, broom, foreign, lubridate, stats)
+p_load(devtools,tidyverse,dplyr,ggplot2,latex2exp,stargazer, fixest, modelsummary, knitr, readr, tseries, lmtest, forecast, dynlm, vars, gridExtra)
 
 dfAssign_p3 <- as.data.frame(read_csv("data/data_assign_p3.csv"))
 ```
@@ -74,16 +74,12 @@ sigma_v = 0.5
 
 # Function to simulate X_t, Y_t
 simulate_2RW = function(n_steps, sigma_u, sigma_v){
-  # Set the starting position for each walk
-  start_pos1 <- 0
-  start_pos2 <- 0
-  
   # Simulate the random steps for each walk and store in vectors
   steps1 <- rnorm(n_steps, mean = 0, sd = sigma_u)
   steps2 <- rnorm(n_steps, mean = 0, sd = sigma_v)
-  Y <- cumsum(steps1) + start_pos1
-  X <- cumsum(steps2) + start_pos2
   
+  Y <- cumsum(steps1)
+  X <- cumsum(steps2) 
   return(list(X_t=X,Y_t=Y))
 }
 
@@ -165,15 +161,28 @@ We suspect that this also means that the time series can be integrated with orde
 
 DO YOU AGREE WITH THIS ANSWER? I'M NOT VERY SURE.
 \section{Question 3} \label{q3}
-
+The critical value for the ADF test for this sample size is -3.12
 ```{r q3}
-
+ADF_Apple = ur.df(dfAssign_p3$APPLE, type =  "trend", lags = 1,
+      selectlags = "BIC")
+ADF_Apple
 ```
+Here, we have the warning that the p-values are smaller than the printed p-values, which means that the printed p-values of 0.01 above are rounded up. Thus, we can say that it is statistically significant at level of 0.01.
 
+Is the unit-root hypothesis rejected for any time-series at the 90% confidence level? => Yes
+
+Did you expect to reject the unit-root hypothesis for some time-series at this confidence level? Justify your answer carefully.
+
+```{r}
+ADF=ur.df(dfAssign_p3$APPLE, type =  "trend", lags = 1,
+      selectlags = "BIC")
+
+summary(ADF)
+```
 \section{Question 4} \label{q4}
 
 ```{r q4}
-
+lSummary[[1]]
 ```
 
 \section{Question 5} \label{q5}
