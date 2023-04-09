@@ -159,20 +159,20 @@ for (T in seq(init_step, max_T, 200)) {
   \hline
  & T & beta\_hat\_1 & t\_stat\_1 & R\_squared\_1 & beta\_hat\_2 & t\_stat\_2 & R\_squared\_2 \\ 
   \hline
-1 & 200.00 & 0.54 & 24.62 & 0.75 & 0.51 & 13.08 & 0.46 \\ 
-  2 & 400.00 & 0.50 & 75.90 & 0.94 & 0.49 & 21.06 & 0.53 \\ 
-  3 & 600.00 & 0.50 & 85.59 & 0.92 & 0.49 & 25.48 & 0.52 \\ 
-  4 & 800.00 & 0.50 & 124.18 & 0.95 & 0.51 & 33.60 & 0.59 \\ 
-  5 & 1000.00 & 0.50 & 137.93 & 0.95 & 0.49 & 32.81 & 0.52 \\ 
-  6 & 1200.00 & 0.50 & 211.06 & 0.97 & 0.50 & 40.04 & 0.57 \\ 
-  7 & 1400.00 & 0.50 & 553.08 & 1.00 & 0.50 & 39.90 & 0.53 \\ 
-  8 & 1600.00 & 0.50 & 244.21 & 0.97 & 0.49 & 43.78 & 0.55 \\ 
-  9 & 1800.00 & 0.50 & 255.31 & 0.97 & 0.51 & 48.00 & 0.56 \\ 
-  10 & 2000.00 & 0.50 & 415.59 & 0.99 & 0.51 & 51.27 & 0.57 \\ 
+1 & 200 & 0.54 & 24.62 & 0.75 & 0.51 & 13.08 & 0.46 \\ 
+  2 & 400 & 0.50 & 75.90 & 0.94 & 0.49 & 21.06 & 0.53 \\ 
+  3 & 600 & 0.50 & 85.59 & 0.92 & 0.49 & 25.48 & 0.52 \\ 
+  4 & 800 & 0.50 & 124.18 & 0.95 & 0.51 & 33.60 & 0.59 \\ 
+  5 & 1000 & 0.50 & 137.93 & 0.95 & 0.49 & 32.81 & 0.52 \\ 
+  6 & 1200 & 0.50 & 211.06 & 0.97 & 0.50 & 40.04 & 0.57 \\ 
+  7 & 1400 & 0.50 & 553.08 & 1.00 & 0.50 & 39.90 & 0.53 \\ 
+  8 & 1600 & 0.50 & 244.21 & 0.97 & 0.49 & 43.78 & 0.55 \\ 
+  9 & 1800 & 0.50 & 255.31 & 0.97 & 0.51 & 48.00 & 0.56 \\ 
+  10 & 2000 & 0.50 & 415.59 & 0.99 & 0.51 & 51.27 & 0.57 \\ 
    \hline
 \end{tabular}
 \end{table}
-Looking at the results of model 1 (using non-stationary cointegrated variables), we can see that the $\hat\beta$ estimates are quite reliable and consistent, with higher T-statistics and higher R-squared scores. This indicates that we did not run into the spurious regression problems. On the other hand, the result of model 2 suggests that the model perform poorly, with lower T-statistics and low R-squared scores suggest that the model perform poorly and the results are not reliable. This suggests that we run into teh spurious regression problems.
+Looking at the results of model 1 (using non-stationary cointegrated variables), we can see that the $\hat\beta$ estimates are quite reliable and consistent, with higher T-statistics and higher R-squared scores. This indicates that we did not run into the spurious regression problems. On the other hand, the result of model 2 suggests that the model perform poorly, with lower T-statistics and low R-squared scores suggest that the model perform poorly and the results are not reliable. This suggests that we run into the spurious regression problems.
 \section{Question 2} \label{q2}
 
 ```{r q2}
