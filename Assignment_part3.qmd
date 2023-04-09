@@ -164,15 +164,13 @@ Microsoft = dfAssign_p3[["MICROSOFT"]]
 acf(Microsoft, 12, pl=T)
 pacf(Microsoft, 12, pl=F)
 ```
-We can see that all 12 lags of the autocorrelation function (ACF) are significant but only one lag of the partial autocorrelation function (PACF) is significant, it suggests that the dynamic of these stocks may have a high degree of autocorrelation but can be adequately modeled using a simple autoregressive (AR) model with one lag.
+We can see that all 12 lags of the autocorrelation function (ACF) are significant but only one lag of the partial autocorrelation function (PACF) is significant, it suggests that the dynamic of these stocks may have a high degree of autocorrelation but can be adequately modeled using a simple autoregressive (AR) model with one lag. To be specific:
 
 The high degree of autocorrelation indicated by the significant ACF lags suggests that past values of the stock prices are highly correlated with its current values. This can indicate that the stock price is predictable to some extent and that past values may provide useful information for forecasting future values.
 
 The low number of significant lags in the PACF suggests that the significant ACF lags can be adequately explained by a simple AR(1) model. This implies that the current value of the time series can be explained by its previous value and that other factors such as trend, seasonality, or exogenous variables may not be significant.
 
 We suspect that this also means that the time series can be integrated with order 1.
-
-DO YOU AGREE WITH THIS ANSWER? I'M NOT VERY SURE.
 \section{Question 3} \label{q3}
 
 ```{r q3}
