@@ -232,7 +232,7 @@ Then, the first difference can be described by the constant term plus a Gaussian
 apple_lm =lm(diff(Apple) ~ 1)
 summary(apple_lm)
 
-microsoft_lm =lm(Microsoft ~ 1)
+microsoft_lm =lm(diff(Microsoft) ~ 1)
 summary(microsoft_lm)
 ```
 The regression results shows that the constant term is not significant at any levels of significant. Thus, we decide to not include a drift in the models. The final model to be fitted to these stock prices is:
