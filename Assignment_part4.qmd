@@ -285,8 +285,22 @@ grangertest(INC ~ CONS, order = 3, data = dfAssign_p4)
 
 \section{Question 8} \label{q8}
 
-```{r q8}
+In order to predict the consumption in 2009 Q3, we need to re-estimate the model using data only up to that point in order to avoid predicting the data we used for estimation.
 
+```{r q8}
+dfQ8 <- dfAssign_p4[1:85,]
+
+#modelres <- lm(CONS ~ INC, data=dfQ8)
+#
+#residuals <- modelres$residuals
+#
+#dfQ8['residuals'] <- residuals
+
+ecm_model_q8 <- ecmback(y=dfQ8['CONS'], xtr = dfQ8['INC'], xeq=dfQ8['residuals'], lags = 1, criterion = "BIC", includeIntercept = F)
+
+summary(ecm_model_q8)
+
+ecmpredict(ecm_model_q8, dfAssign_p4[86:88,], init = dfAssign_p4[86,2])
 ```
 
-
+From the prediction, we can see that the predicted aggregate consumption in period 87 (2009 Q3) is 86881.6, while the actual value is 87121.6. Therefore, we predict an increase of $86881.6 - 86748.8 = 132.8$ in aggregate consumption, expecting a very slight raise. Since the lagged residual value in 2009 Q2 is $2364.76$ and our coefficient in the model is $-0.149$, the error correction actually takes away $2364.76*0.149 = 352.35$ from the predicted increase. This sounds like a huge impact but it can mostly be attributed to the fact that the residuals around this period (namely in Q2 2009 which we can treat as observed) are quite large in absolute terms due to the volatile nature of the economy in those periods. If we did not consider the error correction, we would actually overshoot the actual consumption value in the period, while in this case we undershoot it. 
