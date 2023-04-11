@@ -199,7 +199,7 @@ ADF_Yahoo = ur.df(dfAssign_p3$YAHOO, type =  "none", lags = 10,
 \centering
 \begin{tabular}{lllll}
 \hline
-             & ADF test statictis & lags used & p-value & 10 $\%$ critical value \\ \hline
+             & ADF test statistics & lags used & p-value & 10 $\%$ critical value \\ \hline
 Apple        & 0.892              & 1         & 0.372   & -1.62                  \\
 Exxon Mobil  & 0.264              & 2         & 0.792   & -1.62                  \\
 Ford         & 0.132              & 1         & 0.895   & -1.62                  \\

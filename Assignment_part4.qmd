@@ -60,7 +60,7 @@ biblio-title: References
 # load packages
 if(!require(pacman)){install.packages("pacman")}
 
-p_load(devtools,tidyverse,dplyr,ggplot2,latex2exp,stargazer, fixest, modelsummary, knitr, readr, tseries, lmtest, forecast, dynlm, vars, xtable)
+p_load(devtools,tidyverse,dplyr,ggplot2,latex2exp,stargazer, fixest, modelsummary, knitr, readr, tseries, lmtest, forecast, dynlm, vars, xtable, ecm)
 
 dfAssign_p4 <- as.data.frame(read_csv("data/data_assign_p4.csv"))
 
@@ -183,7 +183,6 @@ plot.ts(dfAssign_p4$INC, main="Quarterly Aggregate Income since 1988 Q1", ylab="
 
 The two plots above show the shape of the quarterly aggregate consumption and quarterly aggregate income in the Netherlands. From this we can see that due to the aggregate nature of the two series, the series are not likely to be stationary at first glance.
 
-
 ```{r q2 acf}
 acf(dfAssign_p4$CONS,12,pl=T, main="ACF of the Aggregate Consumption")
 
@@ -218,26 +217,70 @@ adf.test(d1_CONS)
 adf.test(d1_INC)
 ```
 
-In the case of the first-difference series, we still cannot reject the null hypothesis on the first case (consumption), however the second Augmented Dickey-Fuller test has a p-value of $p= 2.71\%$ and hence can be rejected at a 5\% significance level. This means that the first difference of the income component of the GDP might be stationary.
-
-order of cointegration?
+In the case of the first-difference series, we still cannot reject the null hypothesis on the first case (consumption), however the second Augmented Dickey-Fuller test has a p-value of $p= 2.71\%$ and hence can be rejected at a 5\% significance level. This means that the first difference of the income component of the GDP might be stationary. In terms of the order of integration, these results imply that the income series is most likely an $I(1)$ series (integrated of order 1), while for consumption, this may be $I(2)$ or higher order, but the ADF test implies that even the first difference of the series is not stationary.
 
 \section{Question 5} \label{q5}
 
 ```{r q5}
+model5 <- lm(CONS ~ INC, data=dfAssign_p4)
 
+summary(model5)
+
+residuals <- model5$residuals
+
+dfAssign_p4 <- cbind(dfAssign_p4, residuals)
+
+plot.ts(dfAssign_p4$residuals, main="Residuals of Consumption regressed on Income", ylab="Residuals")
 ```
+
+From the residuals plot, one can already see that we would suspect stationarity in the residuals, which would imply cointegration between the two variables.
+
+```{r q5 adf}
+adf.test(residuals)
+
+adf_res = ur.df(dfAssign_p4$residuals, type =  "none", lags = 10,
+      selectlags = "BIC")
+
+summary(adf_res)
+```
+
+The ADF test is conducted by starting with 10 number of lags and a general-to-specific approach, where we remove lags based on the Schwartz Information Criteria at each step (without considering drift or trend). Based on the ADF test on the residuals, we can observe that the non-stationarity hypothesis is rejected. This implies that the residuals series is probably stationary, which implies existing cointegration between consumption and income. Then we can observe, that the model with the best SIC is the one:
+
+\begin{equation}
+\begin{aligned}
+\Delta Z_t = \gamma Z_{t-1} + \delta_1 \Delta Z_{t-1} + \delta_2 \Delta Z_{t-2}
+\end{aligned}
+\end{equation}
+
+Then the test statistic for the ADF test is $-3.436$, which is below the 5\% significance level of $-1.95$, hence the consumption and income variables are likely cointegrated with order $CI(1,1)$ which comes from the starting assumption of this question that both variables separately are considered $I(1)$. This cointegration is also confirmed by the coefficient test of $\gamma=-0.177$ in the model, which shows that the coefficient is not statistically equal to 0.
 
 \section{Question 6} \label{q6}
 
 ```{r q6}
+ecm_model <- ecmback(y=dfAssign_p4['CONS'], xtr = dfAssign_p4['INC'], xeq=dfAssign_p4['residuals'], lags = 1, criterion = "BIC", includeIntercept = F)
 
+summary(ecm_model)
+
+mean(diff(dfAssign_p4$CONS, differences = 1))/mean(diff(dfAssign_p4$INC, differences = 1))
 ```
+In this case, we can use the same series of estimated residuals as used in \brefsection{q5} and the $CI(1,1)$ property to estimate the error correction model. Above we can see the results of an error correction model, where the model is estimated in the following form:
 
+\begin{equation}
+\begin{aligned}
+\Delta Y_t = \gamma Z_{t-1} + \delta_0 Y_{t-1} + \beta_0 \Delta X_{t} + \epsilon_t ,
+\end{aligned}
+\end{equation}
+
+\noindent where the Y marks the consumption series, X marks the income series and the Z is the residual from the simple regression of consumption on income. We can infer from the results that the short run multiplier is $\beta_0 = 0.23$ and for the long run multiplier we need to first specify the model $\bar{Y} = \alpha + \delta_1 \bar{X}$, where $\delta_1$ is the long run multiplier. We can calculate this by restricting the $\alpha$ to 0, and then we get that $\Delta \bar{Y} = \delta_1 \Delta \bar{X}$, resulting in $\delta_1 = 0.65$. This means that in the short run, increase in income will slightly increase consumption, but in the long term, this effect will become more pronounced. To interpret the error correction coefficient of $\gamma = -0.15$, we can say that consumption is corrected with a slight error correction of $-0.15 \times \epsilon_t$ if the consumption deviates from the long term equilibrium.
+ 
 \section{Question 7} \label{q7}
 
-```{r q7}
+Based on the results of \brefsection{q6}, we can observe an error correction coefficient of $\gamma = -0.15$, which is a relatively low error correction coefficient. There is no overshooting, because $|\gamma| < 1$, which means that the model applies a slight error correction when the consumption is far from its long term equilibrium. Next, we can address the question of Granger causality by estimating an ADL(1,1) model and checking the significance of the first exogenous lag coefficient ($X_{t-1}$) or directly looking at the Granger causality test. Following the latter, we can observe the results for the test as below, where the p-value of $0.005$ shows that the income Granger causes the consumption at 5\% level. If we reverse the order however, there is not enough evidence of the reverse at 5\% level, only at 10\%. This implies that income Granger causes consumption, but probably consumption does not Granger cause income.
 
+```{r q7}
+grangertest(CONS ~ INC, order = 3, data = dfAssign_p4)
+
+grangertest(INC ~ CONS, order = 3, data = dfAssign_p4)
 ```
 
 \section{Question 8} \label{q8}
@@ -245,3 +288,5 @@ order of cointegration?
 ```{r q8}
 
 ```
+
+
