@@ -1,0 +1,289 @@
+---
+title: | 
+  | Econometrics III 
+  | Assignment Part III
+author: | 
+  - Thao Le (523716) *
+  - David Gyaraki (582340)
+abstract: |
+  | Disclaimer: This assignment was originally prepared for the 2022/23 version of the course in teams of two, but Thao Le (523716) has already passed this course and hence the assignment is resubmitted by David Gyaraki (582340). The code has been slightly changed to align with the 2023/24 version.
+format: pdf
+pdf:
+  documentclass: article
+  cite-method: biblatex
+editor: source
+include-in-header:
+  text: |
+    \addtokomafont{disposition}{\rmfamily}
+    \usepackage{amsmath}
+    \newcommand{\bm}{\symbf}
+    \newcommand{\T}{\text{T}}
+    \newcommand{\pl}{\text{plim}}
+    \newcommand{\brefsection}[1]{Section \textcolor{blue}{\ref{#1}}}
+    \newcommand{\beqref}[1]{Equation \textcolor{blue}{\eqref{#1}}}
+    \newcommand{\breftable}[1]{Table \textcolor{blue}{\ref{#1}}}
+    \newcommand{\breffig}[1]{Figure \textcolor{blue}{\ref{#1}}}
+    \usepackage{fancyvrb}
+    \usepackage{dcolumn}
+    \usepackage{fvextra}
+    \DefineVerbatimEnvironment{Highlighting}{Verbatim}{
+      showspaces = false,
+      showtabs = false,
+      breaklines,
+      commandchars=\\\{\}
+    }
+pdf-engine: xelatex
+cap-location: top
+toc: true
+toc-title: Contents
+number-sections: true
+mainfont: Arial
+setspace:
+  linestretch: 1.25
+fig-align: center
+table-align: center
+fig-pos: H
+table-pos: H
+execute:
+  echo: true
+  warning: false
+  eval: true
+code-line-numbers: false
+colorlinks: true
+code-block-bg: darkgray
+df-print: default
+highlight-style: arrow-dark
+biblio-title: References
+---
+
+\clearpage
+
+```{r setup part1, echo=TRUE, results='hide'}
+# load packages
+if(!require(pacman)){install.packages("pacman")}
+
+p_load(devtools,tidyverse,dplyr,ggplot2,latex2exp,stargazer, fixest, modelsummary, knitr, readr, tseries, lmtest, forecast, dynlm, vars, gridExtra, tidy)
+
+dfAssign_p3 <- as.data.frame(read_csv("data/data_assign_p3.csv"))
+```
+
+\section{Question 1} \label{q1}
+
+```{r q1}
+# Set parameter for each walk
+sigma_u = 1
+sigma_v = 0.5
+
+# Function to simulate X_t, Y_t
+simulate_2RW = function(n_steps, sigma_u, sigma_v){
+  # Simulate the random steps for each walk and store in vectors
+  steps1 <- rnorm(n_steps, mean = 0, sd = sigma_u)
+  steps2 <- rnorm(n_steps, mean = 0, sd = sigma_v)
+  
+  Y <- cumsum(steps1)
+  X <- cumsum(steps2) 
+  return(list(X_t=X,Y_t=Y))
+}
+
+# Set simulation parameters
+max_T <- 3000
+step <- 1
+init_step = 20
+
+# Initialize dataframe to store results
+sim_results <- data.frame(
+  T = numeric(),
+  beta_hat = numeric(),
+  t_stat = numeric(),
+  R_squared = numeric(),
+  stringsAsFactors = FALSE
+)
+
+# For each sample size T from T = 200,400,..., 1000
+for (T in seq(init_step, max_T, 1)) {
+  lRWs = simulate_2RW(T, sigma_u, sigma_v)
+  X_t = lRWs$X_t
+  Y_t = lRWs$Y_t
+    
+  # Perform linear regression and get summary stats
+  model <- lm(Y_t ~ X_t)
+  summary <- summary(model)
+  beta_hat <- summary[["coefficients"]][2]
+  t_stat <- summary[["coefficients"]][6]
+  R_squared <- summary$r.squared
+  # Store results
+  sim_results <- sim_results %>% 
+    add_row(T = T,
+          beta_hat = beta_hat,
+          t_stat = t_stat,
+          R_squared = R_squared)
+}
+```
+
+```{r}
+ggplot(sim_results, aes(x = T, y = beta_hat)) + 
+  geom_point() +
+  geom_line() +
+  ggtitle("Beta hat")
+
+ggplot(sim_results, aes(x = T, y = t_stat)) + 
+  geom_point() +
+  geom_line() +
+  ggtitle("T-statistics")
+
+ggplot(sim_results, aes(x = T, y = R_squared)) + 
+  geom_point() +
+  geom_line() +
+  ggtitle("R-squared")
+```
+From the scatter plot of values of $\hat\beta$, T-statistics, and R-squared values with increasing sample sizes, we can verify that:
+
+\begin{gather*}
+    \hat\beta \xrightarrow[]{d} RV \\
+    \text{T-statistics} \xrightarrow[]{p} \infty \\
+    R^2  \xrightarrow[]{d} RV
+\end{gather*}
+
+
+\section{Question 2} \label{q2}
+
+```{r q2}
+# Plot both time series
+par(mfrow = c(2, 1))
+par(mar = c(4, 4, 2, 1) + 0.1)  # Adjust margins
+plot(dfAssign_p3$APPLE, type = "l", xlab = "Time", ylab = "APPLE")
+plot(dfAssign_p3$MICROSOFT, type = "l", xlab = "Time", ylab = "MICROSOFT")
+```
+```{r}
+# Calculate and Plot ACF and PACF for Apple
+Apple = dfAssign_p3[["APPLE"]]
+acf(Apple, 12, pl=T)
+pacf(Apple, 12, pl=T)
+```
+```{r}
+# Calculate ACF and PACF for Microsoft
+Microsoft = dfAssign_p3[["MICROSOFT"]]
+acf(Microsoft, 12, pl=T)
+pacf(Microsoft, 12, pl=F)
+```
+We can see that all 12 lags of the autocorrelation function (ACF) are significant but only one lag of the partial autocorrelation function (PACF) is significant, it suggests that the dynamic of these stocks may have a high degree of autocorrelation but can be adequately modeled using a simple autoregressive (AR) model with one lag. To be specific:
+
+The high degree of autocorrelation indicated by the significant ACF lags suggests that past values of the stock prices are highly correlated with its current values. This can indicate that the stock price is predictable to some extent and that past values may provide useful information for forecasting future values.
+
+The low number of significant lags in the PACF suggests that the significant ACF lags can be adequately explained by a simple AR(1) model. This implies that the current value of the time series can be explained by its previous value and that other factors such as trend, seasonality, or exogenous variables may not be significant.
+
+We suspect that this also means that the time series can be integrated with order 1.
+\section{Question 3} \label{q3}
+
+```{r q3}
+ADF_Apple = ur.df(dfAssign_p3$APPLE, type =  "none", lags = 10,
+      selectlags = "BIC")
+ADF_Exxon = ur.df(dfAssign_p3$EXXON_MOBIL, type =  "none", lags = 10,
+      selectlags = "BIC")
+ADF_Ford = ur.df(dfAssign_p3$FORD, type =  "none", lags = 10,
+      selectlags = "BIC")
+ADF_GenElectric = ur.df(dfAssign_p3$GEN_ELECTRIC, type =  "none", lags = 10,
+      selectlags = "BIC")
+ADF_Intel = ur.df(dfAssign_p3$INTEL, type =  "none", lags = 10,
+      selectlags = "BIC")
+ADF_Micro = ur.df(dfAssign_p3$MICROSOFT, type =  "none", lags = 10,
+      selectlags = "BIC")
+ADF_Netflix = ur.df(dfAssign_p3$NETFLIX, type =  "none", lags = 10,
+      selectlags = "BIC")
+ADF_Nokia = ur.df(dfAssign_p3$NOKIA, type =  "none", lags = 10,
+      selectlags = "BIC")
+ADF_SP500 = ur.df(dfAssign_p3$SP500, type =  "none", lags = 10,
+      selectlags = "BIC")
+ADF_Yahoo = ur.df(dfAssign_p3$YAHOO, type =  "none", lags = 10,
+      selectlags = "BIC")
+```
+\begin{table}[H]
+\centering
+\begin{tabular}{lllll}
+\hline
+             & ADF test statistics & lags used & p-value & 10 $\%$ critical value \\ \hline
+Apple        & 0.892              & 1         & 0.372   & -1.62                  \\
+Exxon Mobil  & 0.264              & 2         & 0.792   & -1.62                  \\
+Ford         & 0.132              & 1         & 0.895   & -1.62                  \\
+Gen Electric & -1.218             & 1         & 0.174   & -1.62                  \\
+Intel        & -0.252             & 1         & 0.800   & -1.62                  \\
+Microsoft    & -0.313             & 1         & 0.754   & -1.62                  \\
+Netflix      & 0.136              & 1         & 0.892   & -1.62                  \\
+Nokia        & -1.183             & 3         & 0.237   & -1.62                  \\
+SP500        & -0.045             & 1         & 0.964   & -1.62                  \\
+Yahoo        & -1.179             & 1         & 0.239   & -1.62                 
+\end{tabular}
+\caption{ADF test results for all 10 stocks}
+\end{table}
+
+We carried out the ADF unit-root test for all 10 time series using the G2S approach based on the Schwart Information Criterion. This test did not include a trend in the model. The G2S approach finds that including 1 lag in the analysis would fit the time series the most. 
+
+At 90$\%$ confidence level, the results show that we did not reject the null hypothesis for any of the time series, suggesting that there is a unit-root presence and the time-series are non-stationary.
+
+This result is in accordance with our expectation as we did not expect to reject any of the null hypothesis for the time series. This is because these time series are stock prices and usually follow a random walk process. Random walk processes are non-stationary and they should have a unit root.
+
+\section{Question 4} \label{q4}
+First, we need to check whether to include a drift (constant term $\alpha$) in the random walk processes of Apple and Microsoft stock prices. To do this, we rewrite the random walk model by taking the first difference:
+\begin{gather*}
+   \Delta X_t = \alpha + \epsilon_t
+\end{gather*}
+
+Then, the first difference can be described by the constant term plus a Gaussian noise term. To test the significance of $\alpha$, we proceed with a normal linear regression below:
+
+```{r q4}
+apple_lm =lm(diff(Apple) ~ 1)
+summary(apple_lm)
+
+microsoft_lm =lm(diff(Microsoft) ~ 1)
+summary(microsoft_lm)
+```
+The regression results shows that the constant term is not significant at any levels of significant. Thus, we decide to not include a drift in the models. The final model to be fitted to these stock prices is:
+
+\begin{equation*}
+    X_t = X_{t-1} + \epsilon_t
+\end{equation*}
+
+To produce the forecast for these stock prices, we have:
+
+```{r}
+Apple_forecast <- rwf(Apple,drift = FALSE, h = 5, level = c(95))
+Apple_df <- data.frame(Value = Apple_forecast$mean, Lower = Apple_forecast$lower, Upper = Apple_forecast$upper)
+colnames(Apple_df) = c("Value","Lower","Upper")
+ggplot(Apple_df, aes(x = 1:length(Apple_df$Value))) +
+  geom_line(aes(y = Value), color = "blue") +
+  geom_line(aes(y = Lower), color = "red", linetype = "dashed") +
+  geom_line(aes(y = Upper), color = "red", linetype = "dashed") +
+  labs(x = "Day", y = "Value", title = "Apple Stock Forecast with 95% Confidence Intervals")
+```
+```{r}
+MCS_forecast <- rwf(Microsoft,drift = FALSE, h = 5, level = c(95))
+MCS_df <- data.frame(Value = MCS_forecast$mean, Lower = MCS_forecast$lower, Upper = MCS_forecast$upper)
+colnames(MCS_df) = c("Value","Lower","Upper")
+ggplot(MCS_df, aes(x = 1:length(MCS_df$Value))) +
+  geom_line(aes(y = Value), color = "blue") +
+  geom_line(aes(y = Lower), color = "red", linetype = "dashed") +
+  geom_line(aes(y = Upper), color = "red", linetype = "dashed") +
+  labs(x = "Day", y = "Value", title = "Microsoft Stock Forecast with 95% Confidence Intervals")
+```
+According to the forecast, we can see that since there is no statistically significant evidence of a drift, the stock of these companies could fluctuates up or down. However, Since there is a higher evidence of a positive drift for Apple stocks (looking at the plots of stock prices below) and the p-values of having a positive constant term in the tests above, it is more likely that there exists a positive trend in Apple stocks. Moreover, the price of Apple stocks seems to be higher than that of Microsoft. Generally speaking, Apple's stocks is more valuable than Microsoft's stock.
+
+However, looking at the plots below, the last several periods of Apple stocks seems to follow a downward trends, so it might be that Apple's stock can decrease soon. Thus, I would not dare to give investment advice based solely on this forecast and would check more background information of the companies' current prospects.
+
+Because there is no drift included in the model, we cannot say their stock values is expected to increase or decrease.
+```{r}
+plot(Apple, type = "l", xlab = "Time", ylab = "Apple stock prices") 
+plot(Microsoft, type = "l", xlab = "Time", ylab ="Microsoft stock prices")
+```
+\section{Question 5} \label{q5}
+
+```{r q5}
+Exxon = dfAssign_p3$EXXON_MOBIL
+Micro_Exxon = lm(Microsoft ~ Exxon)
+summary(Micro_Exxon)
+```
+Based on the simple linear regression above, we find statistically significant evidence of contemporaneous relations between two stock prices. However, since both stock prices are non-stationary I(1) (according to teh ADF tests above), this result is not reliable since it is subjected to the spurious regression problems. 
+
+The variables in spurious regression appear to be statistically significant and have a high correlation coefficient, but there is no causal relationship between them. Spurious regression happens when two time series have unrelated trends yet are highly connected due to random chance. Because both time series are going upwards over time, their correlation coefficient will also grow, resulting in the impression of a relationship between them. This relationship, however, is deceptive, and any inferences formed from it will be untrustworthy. 
+
+Thus, we do not agree to the claim that changes in Microsoft stock prices are largely explained by fluctuations in the stock price of Exxon Mobile.
+

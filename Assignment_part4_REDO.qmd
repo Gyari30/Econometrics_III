@@ -1,0 +1,282 @@
+---
+title: | 
+  | Econometrics III 
+  | Assignment Part IV
+author: | 
+  - Thao Le (523716) *
+  - David Gyaraki (582340)
+abstract: |
+  | Disclaimer: This assignment was originally prepared for the 2022/23 version of the course in teams of two, but Thao Le (523716) has already passed this course and hence the assignment is resubmitted by David Gyaraki (582340). The assignment has been slightly changed to align with the 2024/25 version.
+format: pdf
+pdf:
+  documentclass: article
+  cite-method: biblatex
+editor: source
+include-in-header:
+  text: |
+    \addtokomafont{disposition}{\rmfamily}
+    \usepackage{amsmath}
+    \newcommand{\bm}{\symbf}
+    \newcommand{\T}{\text{T}}
+    \newcommand{\pl}{\text{plim}}
+    \newcommand{\brefsection}[1]{Section \textcolor{blue}{\ref{#1}}}
+    \newcommand{\beqref}[1]{Equation \textcolor{blue}{\eqref{#1}}}
+    \newcommand{\breftable}[1]{Table \textcolor{blue}{\ref{#1}}}
+    \newcommand{\breffig}[1]{Figure \textcolor{blue}{\ref{#1}}}
+    \usepackage{fancyvrb}
+    \usepackage{dcolumn}
+    \usepackage{fvextra}
+    \DefineVerbatimEnvironment{Highlighting}{Verbatim}{
+      showspaces = false,
+      showtabs = false,
+      breaklines,
+      commandchars=\\\{\}
+    }
+pdf-engine: xelatex
+cap-location: top
+toc: true
+toc-title: Contents
+number-sections: true
+mainfont: Arial
+setspace:
+  linestretch: 1.25
+fig-align: center
+table-align: center
+fig-pos: H
+table-pos: H
+execute:
+  echo: true
+  warning: false
+  eval: true
+code-line-numbers: false
+colorlinks: true
+code-block-bg: darkgray
+df-print: default
+highlight-style: arrow-dark
+biblio-title: References
+---
+
+\clearpage
+
+```{r setup part1, echo=TRUE, results='hide'}
+# load packages
+if(!require(pacman)){install.packages("pacman")}
+
+p_load(devtools,tidyverse,dplyr,ggplot2,latex2exp,stargazer, fixest, modelsummary, knitr, readr, tseries, lmtest, forecast, dynlm, vars, xtable, ecm)
+
+dfAssign_p4 <- as.data.frame(read_csv("data/data_assign_p4.csv"))
+
+# Encode quarters
+dfAssign_p4 <- cbind(dfAssign_p4,c(seq(1,nrow(dfAssign_p4),length.out=nrow(dfAssign_p4))))
+colnames(dfAssign_p4) <- c("obs", "CONS", "INC", "TIME")
+```
+
+We are always more interested in estimating ADL(1,1) instead of first difference ADL(1,1) because we are not able to say anything about the long run equilibrium in case the first difference is used.
+
+\section{Question 1} \label{q1}
+
+```{r q1}
+# Set the parameters
+gamma <- 0.5
+sigma_u <- 1
+sigma_v <- 1
+phi <- 0.9
+init_step = 200
+max_T = 2000
+
+# Function to simulate all data
+sim_data <- function(T) {
+  vt <- rnorm(T, mean = 0, sd = sqrt(sigma_v))
+  ut <- rnorm(T, mean = 0, sd = sqrt(sigma_u))
+  
+  #X_t and Y_t in the cointergrated model
+  xt_cointergrated <- cumsum(vt) 
+  yt_cointergrated <- gamma * xt_cointergrated + ut
+  
+  #X_t and Y_t in the stationary model
+  xt_staionary <- numeric(T)
+  xt_staionary[1] <- vt[1]
+  for (t in 2:T) {
+    xt_staionary[t] <- phi * xt_staionary[t-1] + vt[t]
+  }
+  yt_staionary <- gamma * xt_staionary + ut
+  
+  return(list(xt_cointergrated = xt_cointergrated, yt_cointergrated = yt_cointergrated,
+              xt_staionary = xt_staionary, yt_staionary = yt_staionary))
+}
+
+# Initialize dataframe to store results
+sim_results <- data.frame(
+  T = numeric(),
+  beta_hat_1 = numeric(),
+  t_stat_1 = numeric(),
+  R_squared_1 = numeric(),
+  beta_hat_2 = numeric(),
+  t_stat_2 = numeric(),
+  R_squared_2 = numeric(),
+  stringsAsFactors = FALSE
+)
+
+# For each sample size T from T = 200,400,..., 1000
+for (T in seq(init_step, max_T, 200)) {
+  lData = sim_data(T)
+  
+  # Cointegrated series
+  X1_t = lData$xt_cointergrated
+  Y1_t = lData$yt_cointergrated
+  
+  # Stationary series
+  X2_t = lData$xt_staionary
+  Y2_t = lData$yt_staionary  
+    
+  # Perform linear regression and get summary stats on both models
+  model1 <- lm(Y1_t ~ X1_t)
+  summary1 <- summary(model1)
+  beta_hat1 <- summary1[["coefficients"]][2]
+  t_stat1 <- summary1[["coefficients"]][6]
+  R_squared1 <- summary1$r.squared
+  
+  model2 <- lm(Y2_t ~ X2_t)
+  summary2 <- summary(model2)
+  beta_hat2 <- summary2[["coefficients"]][2]
+  t_stat2 <- summary2[["coefficients"]][6]
+  R_squared2 <- summary2$r.squared
+  
+  # Store results
+  sim_results <- sim_results %>% 
+    add_row(T = T,
+          beta_hat_1 = beta_hat1,
+          t_stat_1 = t_stat1,
+          R_squared_1 = R_squared1,
+          beta_hat_2 = beta_hat2,
+          t_stat_2 = t_stat2,
+          R_squared_2 = R_squared2,
+          )
+}
+```
+
+\begin{table}[H]
+\centering
+\begin{tabular}{rrrrrrrr}
+  \hline
+ & T & beta\_hat\_1 & t\_stat\_1 & R\_squared\_1 & beta\_hat\_2 & t\_stat\_2 & R\_squared\_2 \\ 
+  \hline
+1 & 200 & 0.54 & 24.62 & 0.75 & 0.51 & 13.08 & 0.46 \\ 
+  2 & 400 & 0.50 & 75.90 & 0.94 & 0.49 & 21.06 & 0.53 \\ 
+  3 & 600 & 0.50 & 85.59 & 0.92 & 0.49 & 25.48 & 0.52 \\ 
+  4 & 800 & 0.50 & 124.18 & 0.95 & 0.51 & 33.60 & 0.59 \\ 
+  5 & 1000 & 0.50 & 137.93 & 0.95 & 0.49 & 32.81 & 0.52 \\ 
+  6 & 1200 & 0.50 & 211.06 & 0.97 & 0.50 & 40.04 & 0.57 \\ 
+  7 & 1400 & 0.50 & 553.08 & 1.00 & 0.50 & 39.90 & 0.53 \\ 
+  8 & 1600 & 0.50 & 244.21 & 0.97 & 0.49 & 43.78 & 0.55 \\ 
+  9 & 1800 & 0.50 & 255.31 & 0.97 & 0.51 & 48.00 & 0.56 \\ 
+  10 & 2000 & 0.50 & 415.59 & 0.99 & 0.51 & 51.27 & 0.57 \\ 
+   \hline
+\end{tabular}
+\end{table}
+Looking at the results of model 1 (using non-stationary co-integrated variables), we can see that the $\hat\beta$ estimates are quite reliable and consistent, with higher T-statistics and higher R-squared scores. This indicates that we did not run into the spurious regression problems. On the other hand, the result of model 2 suggests that the model perform poorly, with lower T-statistics and low R-squared scores suggest that the model perform poorly and the results are not reliable. This suggests that we run into the spurious regression problems.
+\section{Question 2} \label{q2}
+
+```{r q2}
+plot.ts(dfAssign_p4$CONS, main="Quarterly Aggregate Consumption since 1988 Q1", ylab="Aggregate Consumption")
+
+plot.ts(dfAssign_p4$INC, main="Quarterly Aggregate Income since 1988 Q1", ylab="Aggregate Income")
+```
+
+The two plots above show the shape of the quarterly aggregate consumption and quarterly aggregate income in the Netherlands. From this we can see that due to the aggregate nature of the two series, the series are not likely to be stationary at first glance.
+
+```{r q2 acf}
+acf(dfAssign_p4$CONS,12,pl=T, main="ACF of the Aggregate Consumption")
+
+acf(dfAssign_p4$INC,12,pl=T, main="ACF of the Aggregate Income")
+
+pacf(dfAssign_p4$CONS,12,pl=T, main="PACF of the Aggregate Consumption")
+
+pacf(dfAssign_p4$INC,12,pl=T, main="PACF of the Aggregate Income")
+```
+
+From the ACF and PACF plots for the consumption and income components of the GDP, we can see that due to the aggregate nature of the series, both the consumption and income autocorrelations show significant correlation (above the white-noise threshold) across all lags all the way to the 12th period lag. However, when we investigate the partial autocorrelation function results, both variables have insignificant correlations for all lags (1st to 12th). While some correlations are more pronounced for consumption than for income, no values reach the white-noise threshold and therefore are not very significant.
+
+\section{Question 3} \label{q3}
+
+```{r q3}
+adf.test(dfAssign_p4$CONS)
+
+adf.test(dfAssign_p4$INC)
+```
+
+Based on the test results, we cannot reject in either case that the series would be non-stationary. Since we do not find sufficient evidence for the stationarity, we can stay at the null-hypothesis of the series being non-stationary. 
+
+\section{Question 4} \label{q4}
+
+```{r q4}
+d1_CONS <- diff(dfAssign_p4$CONS, differences = 1)
+
+d1_INC <- diff(dfAssign_p4$INC, differences = 1)
+
+adf.test(d1_CONS)
+
+adf.test(d1_INC)
+```
+
+In the case of the first-difference series, we still cannot reject the null hypothesis on the first case (consumption), however the second Augmented Dickey-Fuller test has a p-value of $p= 2.71\%$ and hence can be rejected at a 5\% significance level. This means that the first difference of the income component of the GDP might be stationary. In terms of the order of integration, these results imply that the income series is most likely an $I(1)$ series (integrated of order 1), while for consumption, this may be $I(2)$ or higher order, but the ADF test implies that even the first difference of the series is not stationary.
+
+\section{Question 5} \label{q5}
+
+```{r q5}
+model5 <- lm(CONS ~ INC, data=dfAssign_p4)
+
+summary(model5)
+
+residuals <- model5$residuals
+
+dfAssign_p4 <- cbind(dfAssign_p4, residuals)
+
+plot.ts(dfAssign_p4$residuals, main="Residuals of Consumption regressed on Income", ylab="Residuals")
+```
+
+From the residuals plot, one can already see that we would suspect stationarity in the residuals, which would imply co-integration between the two variables.
+
+```{r q5 adf}
+adf.test(residuals)
+
+adf_res = ur.df(dfAssign_p4$residuals, type =  "none", lags = 10,
+      selectlags = "BIC")
+
+summary(adf_res)
+```
+
+The ADF test is conducted by starting with 10 number of lags and a general-to-specific approach, where we remove lags based on the Schwartz Information Criteria at each step (without considering drift or trend). Based on the ADF test on the residuals, we can observe that the non-stationarity hypothesis is rejected. This implies that the residuals series is probably stationary, which implies existing co-integration between consumption and income. Then we can observe, that the model with the best SIC is the one:
+
+\begin{equation}
+\begin{aligned}
+\Delta Z_t = \gamma Z_{t-1} + \delta_1 \Delta Z_{t-1} + \delta_2 \Delta Z_{t-2}
+\end{aligned}
+\end{equation}
+
+Then the test statistic for the ADF test is $-3.436$, which is below the 5\% significance level of $-1.95$, hence the consumption and income variables are likely co-integrated with order $CI(1,1)$ which comes from the starting assumption of this question that both variables separately are considered $I(1)$. This co-integration is also confirmed by the coefficient test of $\gamma=-0.177$ in the model, which shows that the coefficient is not statistically equal to 0.
+
+\section{Question 6} \label{q6}
+
+```{r q6}
+ecm_model <- ecmback(y=dfAssign_p4['CONS'], xtr = dfAssign_p4['INC'], xeq=dfAssign_p4['residuals'], lags = 1, criterion = "BIC", includeIntercept = F)
+
+summary(ecm_model)
+
+mean(diff(dfAssign_p4$CONS, differences = 1))/mean(diff(dfAssign_p4$INC, differences = 1))
+```
+In this case, we can use the same series of estimated residuals as used in \brefsection{q5} and the $CI(1,1)$ property to estimate the error correction model. Above we can see the results of an error correction model, where the model is estimated in the following form:
+
+\begin{equation}
+\begin{aligned}
+\Delta Y_t = \gamma Z_{t-1} + \delta_0 Y_{t-1} + \beta_0 \Delta X_{t} + \epsilon_t ,
+\end{aligned}
+\end{equation}
+
+\noindent where the Y marks the consumption series, X marks the income series and the Z is the residual from the simple regression of consumption on income. We can infer from the results that the short run multiplier is $\beta_0 = 0.23$ and for the long run multiplier we need to first specify the model $\bar{Y} = \alpha + \delta_1 \bar{X}$, where $\delta_1$ is the long run multiplier. We can calculate this by restricting the $\alpha$ to 0, and then we get that $\Delta \bar{Y} = \delta_1 \Delta \bar{X}$, resulting in $\delta_1 = 0.65$. This means that in the short run, increase in income will slightly increase consumption, but in the long term, this effect will become more pronounced. To interpret the error correction coefficient of $\gamma = -0.15$, we can say that consumption is corrected with a slight error correction of $-0.15 \times \epsilon_t$ if the consumption deviates from the long term equilibrium.
+ 
+\section{Question 7} \label{q7}
+
+Based on the results of \brefsection{q6}, we can observe an error correction coefficient of $\gamma = -0.15$, which is a relatively low error correction coefficient. There is no overshooting, because $|\gamma| < 1$, which means that the model applies a slight error correction when the consumption is far from its long term equilibrium. 
+
+
